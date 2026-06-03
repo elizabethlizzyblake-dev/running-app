@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Trophy, Target, BarChart3, Plus, Settings } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { Home, Trophy, Target, BarChart3, Plus, Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
 const navItems = [
   { href: "/", icon: Home, label: "Home" },
@@ -27,9 +28,7 @@ export function BottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] rounded-xl transition-colors",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <item.icon className={cn("w-5 h-5", isActive && "fill-primary/20")} />
@@ -43,12 +42,28 @@ export function BottomNav() {
 }
 
 export function AdminNav() {
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/login")
+    router.refresh()
+  }
+
   return (
-    <Link
-      href="/admin"
-      className="fixed top-4 right-4 z-50 p-2.5 rounded-full bg-card/90 backdrop-blur-lg border border-border text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-    >
-      <Settings className="w-5 h-5" />
-    </Link>
+    <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+      <Link
+        href="/admin"
+        className="p-2.5 rounded-full bg-card/90 backdrop-blur-lg border border-border text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+      >
+        <Settings className="w-5 h-5" />
+      </Link>
+      <button
+        onClick={handleSignOut}
+        className="p-2.5 rounded-full bg-card/90 backdrop-blur-lg border border-border text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+      >
+        <LogOut className="w-5 h-5" />
+      </button>
+    </div>
   )
 }
