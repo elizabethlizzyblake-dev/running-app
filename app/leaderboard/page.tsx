@@ -22,7 +22,6 @@ const leaderTabs = [
   { key: "runs", label: "Most Runs", unit: "runs" },
   { key: "longest", label: "Longest", unit: "km" },
   { key: "consistency", label: "Streak", unit: "days" },
-  { key: "improved", label: "Improved", unit: "sec" },
 ]
 
 const podiumMedalCat: MedalCategory[] = ["special", "monthly", "distance"]
