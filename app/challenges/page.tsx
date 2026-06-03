@@ -1,175 +1,147 @@
 "use client"
 
-import { BottomNav, AdminNav } from "@/components/navigation"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { activeChallenges, type Challenge } from "@/lib/mock-data"
-import { Target, Users, Calendar, Award, Check } from "lucide-react"
 import { useState } from "react"
-import { cn } from "@/lib/utils"
+import { 
+  PacelineProgress, 
+  PacelineNav,
+  SettingsButton,
+  Users,
+  Calendar,
+  Medal,
+  Check
+} from "@/components/paceline-ui"
+import { activeChallenges, type Challenge } from "@/lib/mock-data"
 
-function ChallengeCard({ challenge, onJoin }: { challenge: Challenge; onJoin: (id: string) => void }) {
-  const progress = challenge.currentProgress ?? 0
-  const progressPercent = (progress / challenge.targetValue) * 100
-  const isCompleted = progressPercent >= 100
+function ChallengeCard({ 
+  c, 
+  onJoin 
+}: { 
+  c: Challenge
+  onJoin: (id: string) => void 
+}) {
+  const p = ((c.currentProgress ?? 0) / c.targetValue) * 100
+  const done = p >= 100
   
-  const startDate = new Date(challenge.startDate)
-  const endDate = new Date(challenge.endDate)
-  const daysLeft = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const startDate = new Date(c.startDate)
+  const endDate = new Date(c.endDate)
+  const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
 
   return (
-    <Card className={cn(
-      "p-4 bg-card border-border",
-      isCompleted && "border-primary/50 bg-primary/5"
-    )}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-card-foreground">{challenge.title}</h3>
-            {isCompleted && (
-              <Badge className="bg-primary text-primary-foreground text-xs">
-                <Check className="w-3 h-3 mr-1" />
-                Done!
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">{challenge.description}</p>
-        </div>
+    <div 
+      className="pl-card p-[17px]"
+      style={{ borderColor: done ? 'var(--race)' : 'var(--line)' }}
+    >
+      <div className="flex justify-between items-start gap-[10px]">
+        <div className="font-extrabold text-[17px]">{c.title}</div>
+        {done && (
+          <span className="pl-pill pl-pill-race">
+            <Check size={12} /> Done
+          </span>
+        )}
       </div>
-
-      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-        <span className="flex items-center gap-1">
-          <Users className="w-3.5 h-3.5" />
-          {challenge.participants} joined
+      
+      <p className="text-[13.5px] text-ink-2 mt-[6px] leading-[1.45]">{c.description}</p>
+      
+      <div className="flex gap-[14px] mt-3 flex-wrap">
+        <span className="mono text-[10.5px] tracking-[0.04em] text-ink-3 flex items-center gap-1">
+          <Users size={13} /> {c.participants}
         </span>
-        <span className="flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" />
-          {daysLeft > 0 ? `${daysLeft} days left` : "Ended"}
+        <span className="mono text-[10.5px] tracking-[0.04em] text-ink-3 flex items-center gap-1">
+          <Calendar size={13} /> {daysLeft}d left
         </span>
-        <span className="flex items-center gap-1">
-          <Award className="w-3.5 h-3.5 text-accent" />
-          {challenge.badgeReward}
+        <span className="mono text-[10.5px] tracking-[0.04em] text-[#8A5E12] flex items-center gap-1">
+          <Medal size={13} /> {c.badgeReward}
         </span>
       </div>
 
-      {challenge.joined ? (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Your progress</span>
-            <span className="font-medium text-foreground">
-              {progress} / {challenge.targetValue}
-              {challenge.targetMetric === "distance" ? "km" : " runs"}
+      {c.joined ? (
+        <div className="mt-[14px]">
+          <div className="flex justify-between mb-[7px]">
+            <span className="mono text-[11px] text-ink-3">Your progress</span>
+            <span className="mono text-[11px] font-semibold">
+              {c.currentProgress ?? 0} / {c.targetValue}{c.targetMetric === "distance" ? "km" : ""}
             </span>
           </div>
-          <Progress 
-            value={Math.min(progressPercent, 100)} 
-            className={cn("h-3 bg-muted", isCompleted && "[&>div]:bg-primary")} 
-          />
-          {!isCompleted && (
-            <p className="text-xs text-muted-foreground">
-              {challenge.targetMetric === "distance" 
-                ? `${(challenge.targetValue - progress).toFixed(1)}km to go`
-                : `${challenge.targetValue - progress} more runs needed`
-              } — keep going! 🏃
-            </p>
-          )}
+          <PacelineProgress value={p} solid={done} height={10} />
         </div>
       ) : (
-        <Button 
-          onClick={() => onJoin(challenge.id)}
-          className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
+        <button 
+          className="pl-btn pl-btn-dark mt-[14px]"
+          onClick={() => onJoin(c.id)}
         >
-          Join Challenge
-        </Button>
+          Join quest
+        </button>
       )}
-    </Card>
+    </div>
   )
 }
 
 export default function ChallengesPage() {
   const [challenges, setChallenges] = useState(activeChallenges)
-  
+
   const handleJoin = (id: string) => {
-    setChallenges(prev => prev.map(c => 
-      c.id === id ? { ...c, joined: true, currentProgress: 0, participants: c.participants + 1 } : c
+    setChallenges(prev => prev.map(c =>
+      c.id === id 
+        ? { ...c, joined: true, currentProgress: 0, participants: c.participants + 1 } 
+        : c
     ))
   }
 
-  const joinedChallenges = challenges.filter(c => c.joined)
-  const availableChallenges = challenges.filter(c => !c.joined)
+  const joined = challenges.filter(c => c.joined)
+  const available = challenges.filter(c => !c.joined)
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <AdminNav />
-      
+    <div className="min-h-screen bg-paper pb-[110px] pl-anim">
+      <SettingsButton />
+
       {/* Header */}
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-            <Target className="w-6 h-6 text-primary" />
+      <div className="px-[22px] pt-[54px] pb-[6px]">
+        <div className="flex items-center gap-[9px]">
+          <div className="relative w-[26px] h-[26px] flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
+            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Challenges</h1>
-            <p className="text-sm text-muted-foreground">
-              {joinedChallenges.length} active, {availableChallenges.length} available
-            </p>
+          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+        </div>
+      </div>
+
+      {/* Page Header */}
+      <div className="px-[22px] pt-[14px] pb-2">
+        <div className="pl-eyebrow">Group Quests</div>
+        <h1 className="pl-heading mt-2">Quests</h1>
+        <div className="text-sm text-ink-2 mt-2">
+          {joined.length} active &middot; {available.length} to join
+        </div>
+      </div>
+
+      {/* Active Quests */}
+      <div className="mt-3">
+        <div className="flex items-center gap-[7px] mx-[22px] mb-3">
+          <span className="w-[7px] h-[7px] rounded-full bg-race" />
+          <span className="pl-seclabel">Your Active Quests</span>
+        </div>
+        <div className="px-[22px] flex flex-col gap-3">
+          {joined.map(c => (
+            <ChallengeCard key={c.id} c={c} onJoin={handleJoin} />
+          ))}
+        </div>
+      </div>
+
+      {/* Open to Join */}
+      {available.length > 0 && (
+        <div className="mt-[22px]">
+          <div className="mx-[22px] mb-3">
+            <span className="pl-seclabel">Open to Join</span>
+          </div>
+          <div className="px-[22px] flex flex-col gap-3">
+            {available.map(c => (
+              <ChallengeCard key={c.id} c={c} onJoin={handleJoin} />
+            ))}
           </div>
         </div>
-      </header>
+      )}
 
-      <main className="px-4 space-y-6">
-        {/* Active Challenges */}
-        {joinedChallenges.length > 0 && (
-          <section>
-            <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Your Active Challenges
-            </h2>
-            <div className="space-y-3">
-              {joinedChallenges.map((challenge) => (
-                <ChallengeCard 
-                  key={challenge.id} 
-                  challenge={challenge} 
-                  onJoin={handleJoin}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Available Challenges */}
-        {availableChallenges.length > 0 && (
-          <section>
-            <h2 className="font-semibold text-foreground mb-3">
-              Available to Join
-            </h2>
-            <div className="space-y-3">
-              {availableChallenges.map((challenge) => (
-                <ChallengeCard 
-                  key={challenge.id} 
-                  challenge={challenge} 
-                  onJoin={handleJoin}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Empty state */}
-        {challenges.length === 0 && (
-          <Card className="p-8 bg-card border-border text-center">
-            <Target className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="font-semibold text-foreground mb-1">No challenges yet</h3>
-            <p className="text-sm text-muted-foreground">
-              Check back soon for new challenges!
-            </p>
-          </Card>
-        )}
-      </main>
-
-      <BottomNav />
+      <PacelineNav active="/challenges" />
     </div>
   )
 }
