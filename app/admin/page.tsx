@@ -2,13 +2,16 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Settings, ArrowLeft, Target, Calendar, Award, TrendingUp, Check } from "lucide-react"
+import { 
+  PacelineMedal,
+  ChevronRight,
+  Settings,
+  Target,
+  Calendar,
+  Medal,
+  TrendingUp,
+  Check
+} from "@/components/paceline-ui"
 
 export default function AdminPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -41,217 +44,200 @@ export default function AdminPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="p-8 bg-card border-border text-center max-w-sm w-full">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-paper flex items-center justify-center p-4 pl-anim">
+        <div className="text-center max-w-sm w-full">
+          <div className="flex justify-center mb-[22px]">
+            <PacelineMedal category="special" size="lg" />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Challenge Created! 🎯</h2>
-          <p className="text-muted-foreground mb-4">
-            Your new challenge is now live for members to join.
+          <div className="anton text-[40px] uppercase leading-[0.95]">Created!</div>
+          <p className="text-ink-2 text-[15px] mt-3">
+            Your new quest is now live for members to join.
           </p>
-          <Link href="/challenges">
-            <Button variant="outline" className="border-border text-foreground">
-              View Challenges
-            </Button>
-          </Link>
-        </Card>
+          <div className="mt-7 flex flex-col gap-[10px]">
+            <Link href="/challenges" className="pl-btn pl-btn-primary">
+              View Quests
+            </Link>
+            <Link href="/" className="pl-btn pl-btn-ghost">
+              Back to home
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-paper pb-8 pl-anim">
       {/* Header */}
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3 mb-4">
-          <Link 
-            href="/" 
-            className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center min-w-[44px] min-h-[44px]"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">Admin</h1>
-            <p className="text-sm text-muted-foreground">Challenge Setter</p>
+      <div className="flex items-center gap-3 px-[22px] pt-[54px] pb-1">
+        <Link 
+          href="/"
+          className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2"
+          aria-label="Back"
+        >
+          <ChevronRight size={18} className="rotate-180" />
+        </Link>
+        <div className="flex-1">
+          <div className="pl-eyebrow">Admin</div>
+          <div className="font-bold text-ink">Challenge Setter</div>
+        </div>
+        <div className="w-[38px] h-[38px] rounded-full bg-gold/20 flex items-center justify-center">
+          <Settings size={18} className="text-gold" />
+        </div>
+      </div>
+
+      <main className="px-[22px] pt-4">
+        {/* Header Card */}
+        <div className="pl-card p-4 mb-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-race/20 flex items-center justify-center">
+            <Target size={20} className="text-race" />
           </div>
-          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-accent" />
+          <div>
+            <h2 className="font-semibold text-ink">Create New Quest</h2>
+            <p className="text-xs text-ink-3">Motivate your running community</p>
           </div>
         </div>
-      </header>
 
-      <main className="px-4">
-        <Card className="p-4 bg-card border-border mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Create New Challenge</h2>
-              <p className="text-xs text-muted-foreground">Motivate your running community</p>
-            </div>
-          </div>
-        </Card>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* Title */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="title" className="text-foreground mb-2 block">
-              Challenge Title
-            </Label>
-            <Input
-              id="title"
+          <div className="pl-field">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">
+              Quest Title
+            </div>
+            <input
+              type="text"
               placeholder="e.g. Summer Distance Challenge"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px]"
+              className="pl-input"
               required
             />
-          </Card>
+          </div>
 
           {/* Description */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="description" className="text-foreground mb-2 block">
+          <div className="pl-field">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">
               Description
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Describe the challenge and motivate participants..."
+            </div>
+            <textarea
+              placeholder="Describe the quest and motivate participants..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[100px] resize-none"
+              className="pl-input resize-none"
+              rows={3}
               required
             />
-          </Card>
+          </div>
 
           {/* Dates */}
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-3">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              Challenge Period
-            </Label>
+          <div className="pl-field">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+              <Calendar size={14} /> Quest Period
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="startDate" className="text-xs text-muted-foreground mb-1 block">
-                  Start Date
-                </Label>
-                <Input
-                  id="startDate"
+                <div className="text-xs text-ink-3 mb-1">Start Date</div>
+                <input
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px]"
+                  className="pl-input"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="endDate" className="text-xs text-muted-foreground mb-1 block">
-                  End Date
-                </Label>
-                <Input
-                  id="endDate"
+                <div className="text-xs text-ink-3 mb-1">End Date</div>
+                <input
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px]"
+                  className="pl-input"
                   required
                 />
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Badge Reward */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="badge" className="flex items-center gap-2 text-foreground mb-2">
-              <Award className="w-4 h-4 text-accent" />
-              Badge Reward Name
-            </Label>
-            <Input
-              id="badge"
+          <div className="pl-field">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+              <Medal size={14} className="text-gold" /> Patch Reward Name
+            </div>
+            <input
+              type="text"
               placeholder="e.g. Summer Champion"
               value={formData.badgeReward}
               onChange={(e) => setFormData({ ...formData, badgeReward: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px]"
+              className="pl-input"
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Members earn this badge upon completion
+            <p className="text-xs text-ink-3 mt-2">
+              Members earn this patch upon completion
             </p>
-          </Card>
+          </div>
 
           {/* Target */}
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-3">
-              <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              Target Goal
-            </Label>
+          <div className="pl-field">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+              <TrendingUp size={14} /> Target Goal
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">
-                  Metric
-                </Label>
-                <Select 
+                <div className="text-xs text-ink-3 mb-1">Metric</div>
+                <select 
                   value={formData.targetMetric} 
-                  onValueChange={(value) => setFormData({ ...formData, targetMetric: value })}
+                  onChange={(e) => setFormData({ ...formData, targetMetric: e.target.value })}
+                  className="pl-input"
                 >
-                  <SelectTrigger className="bg-input border-border text-foreground min-h-[44px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
-                    <SelectItem value="distance" className="text-popover-foreground">Distance (km)</SelectItem>
-                    <SelectItem value="runs" className="text-popover-foreground">Number of Runs</SelectItem>
-                    <SelectItem value="streak" className="text-popover-foreground">Streak (days)</SelectItem>
-                    <SelectItem value="pace" className="text-popover-foreground">Pace (min/km)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="distance">Distance (km)</option>
+                  <option value="runs">Number of Runs</option>
+                  <option value="streak">Streak (days)</option>
+                  <option value="pace">Pace (min/km)</option>
+                </select>
               </div>
               <div>
-                <Label htmlFor="targetValue" className="text-xs text-muted-foreground mb-1 block">
-                  Target Value
-                </Label>
-                <Input
-                  id="targetValue"
+                <div className="text-xs text-ink-3 mb-1">Target Value</div>
+                <input
                   type="number"
                   min="1"
                   placeholder="e.g. 100"
                   value={formData.targetValue}
                   onChange={(e) => setFormData({ ...formData, targetValue: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px]"
+                  className="pl-input"
                   required
                 />
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Preview */}
           {formData.title && (
-            <Card className="p-4 bg-primary/10 border-primary/30">
-              <p className="text-xs text-muted-foreground mb-2">Preview</p>
-              <h3 className="font-semibold text-foreground">{formData.title}</h3>
+            <div className="pl-pine p-4">
+              <p className="mono text-[10px] tracking-[0.16em] uppercase text-paper/55 mb-2">Preview</p>
+              <h3 className="font-bold text-paper">{formData.title}</h3>
               {formData.description && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{formData.description}</p>
+                <p className="text-sm text-paper/70 mt-1 line-clamp-2">{formData.description}</p>
               )}
-              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 mt-3 mono text-[10.5px] text-paper/60">
                 {formData.targetValue && (
                   <span>
                     Goal: {formData.targetValue} {formData.targetMetric === "distance" ? "km" : formData.targetMetric === "runs" ? "runs" : formData.targetMetric === "streak" ? "days" : "min/km"}
                   </span>
                 )}
                 {formData.badgeReward && (
-                  <span className="text-accent">🏅 {formData.badgeReward}</span>
+                  <span className="text-gold">{formData.badgeReward}</span>
                 )}
               </div>
-            </Card>
+            </div>
           )}
 
           {/* Submit Button */}
-          <Button 
+          <button 
             type="submit" 
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[52px] text-lg font-semibold"
+            className="pl-btn pl-btn-primary mt-1"
           >
-            Create Challenge 🎯
-          </Button>
+            <Check size={18} strokeWidth={2.6} /> Create Quest
+          </button>
         </form>
       </main>
     </div>

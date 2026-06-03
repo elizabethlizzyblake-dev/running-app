@@ -1,241 +1,183 @@
 "use client"
 
 import { useState } from "react"
-import { BottomNav, AdminNav } from "@/components/navigation"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { 
+  PacelineMedal,
+  ChevronRight,
+  Route,
+  Clock,
+  Sparkles,
+  MessageSquare,
+  Check
+} from "@/components/paceline-ui"
 import { runTypes } from "@/lib/mock-data"
-import { Footprints, Calendar, Clock, Route, MessageSquare, Sparkles, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export default function LogRunPage() {
   const [submitted, setSubmitted] = useState(false)
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
-    distance: "",
-    hours: "",
-    minutes: "",
-    seconds: "",
-    type: "easy",
-    notes: ""
+  const [f, setF] = useState({ 
+    distance: "", 
+    min: "", 
+    sec: "", 
+    type: "easy", 
+    notes: "" 
   })
+  
+  const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      setFormData({
-        date: new Date().toISOString().split("T")[0],
-        distance: "",
-        hours: "",
-        minutes: "",
-        seconds: "",
-        type: "easy",
-        notes: ""
-      })
-    }, 2000)
-  }
-
-  const calculatePace = () => {
-    const distance = parseFloat(formData.distance)
-    const totalMinutes = 
-      (parseInt(formData.hours) || 0) * 60 + 
-      (parseInt(formData.minutes) || 0) + 
-      (parseInt(formData.seconds) || 0) / 60
-    
-    if (distance > 0 && totalMinutes > 0) {
-      const pace = totalMinutes / distance
-      const paceMin = Math.floor(pace)
-      const paceSec = Math.round((pace - paceMin) * 60)
-      return `${paceMin}:${paceSec.toString().padStart(2, "0")} /km`
+  const pace = () => {
+    const d = parseFloat(f.distance)
+    const tot = (parseInt(f.min) || 0) + (parseInt(f.sec) || 0) / 60
+    if (d > 0 && tot > 0) {
+      const p = tot / d
+      const m = Math.floor(p)
+      const s = Math.round((p - m) * 60)
+      return `${m}:${s.toString().padStart(2, "0")}`
     }
-    return "--:-- /km"
+    return "-:--"
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="p-8 bg-card border-border text-center max-w-sm w-full">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-paper flex items-center justify-center pl-anim">
+        <div className="text-center px-8">
+          <div className="flex justify-center mb-[22px]">
+            <PacelineMedal category="distance" size="lg" />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Run Logged! 🎉</h2>
-          <p className="text-muted-foreground">
-            Great job getting out there! Every run counts.
+          <div className="anton text-[40px] uppercase leading-[0.95]">Logged!</div>
+          <p className="text-ink-2 text-[15px] mt-3 max-w-[240px] mx-auto">
+            {f.distance ? `${f.distance} km at ${pace()}/km` : "Nice work"} &mdash; the club just moved forward.
           </p>
-        </Card>
+          <div className="mt-7 flex flex-col gap-[10px]">
+            <Link href="/" className="pl-btn pl-btn-primary">
+              Back to home
+            </Link>
+            <button 
+              className="pl-btn pl-btn-ghost"
+              onClick={() => {
+                setSubmitted(false)
+                setF({ distance: "", min: "", sec: "", type: "easy", notes: "" })
+              }}
+            >
+              Log another
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <AdminNav />
-      
+    <div className="min-h-screen bg-paper pb-[130px] pl-anim">
       {/* Header */}
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-            <Footprints className="w-6 h-6 text-primary" />
+      <div className="flex items-center gap-3 px-[22px] pt-[54px] pb-1">
+        <Link 
+          href="/"
+          className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2"
+          aria-label="Back"
+        >
+          <ChevronRight size={18} className="rotate-180" />
+        </Link>
+        <div className="pl-eyebrow">New entry</div>
+      </div>
+
+      {/* Page Header */}
+      <div className="px-[22px] pt-[6px] pb-2">
+        <h1 className="pl-heading">Log a Run</h1>
+      </div>
+
+      {/* Form */}
+      <div className="px-[22px] pt-2 flex flex-col gap-3">
+        {/* Distance Hero Field */}
+        <div className="pl-field text-center py-5 px-4">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center justify-center gap-2">
+            <Route size={14} /> Distance
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Log a Run</h1>
-            <p className="text-sm text-muted-foreground">Record your achievement</p>
+          <div className="flex items-baseline justify-center gap-2">
+            <input
+              type="number"
+              placeholder="0.0"
+              value={f.distance}
+              onChange={e => set("distance", e.target.value)}
+              className="w-[130px] bg-transparent border-none text-center anton text-[44px] outline-none placeholder:text-ink-3/50"
+            />
+            <span className="mono text-lg text-ink-3">km</span>
           </div>
         </div>
-      </header>
 
-      <main className="px-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Date */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="date" className="flex items-center gap-2 text-foreground mb-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              Date
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px]"
-              required
-            />
-          </Card>
-
-          {/* Distance */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="distance" className="flex items-center gap-2 text-foreground mb-2">
-              <Route className="w-4 h-4 text-muted-foreground" />
-              Distance (km)
-            </Label>
-            <Input
-              id="distance"
+        {/* Duration + Pace */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <Clock size={14} /> Duration
+          </div>
+          <div className="flex gap-[10px] items-center">
+            <input
               type="number"
-              step="0.1"
-              min="0"
-              placeholder="e.g. 5.0"
-              value={formData.distance}
-              onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px] text-lg"
-              required
+              placeholder="00"
+              value={f.min}
+              onChange={e => set("min", e.target.value)}
+              className="pl-input text-center mono text-[22px] font-semibold"
             />
-          </Card>
-
-          {/* Duration */}
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              Duration
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <Input
-                  type="number"
-                  min="0"
-                  max="23"
-                  placeholder="0"
-                  value={formData.hours}
-                  onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px] text-center"
-                />
-                <p className="text-xs text-muted-foreground text-center mt-1">Hours</p>
-              </div>
-              <div>
-                <Input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="0"
-                  value={formData.minutes}
-                  onChange={(e) => setFormData({ ...formData, minutes: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px] text-center"
-                  required
-                />
-                <p className="text-xs text-muted-foreground text-center mt-1">Minutes</p>
-              </div>
-              <div>
-                <Input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="0"
-                  value={formData.seconds}
-                  onChange={(e) => setFormData({ ...formData, seconds: e.target.value })}
-                  className="bg-input border-border text-foreground min-h-[44px] text-center"
-                />
-                <p className="text-xs text-muted-foreground text-center mt-1">Seconds</p>
-              </div>
-            </div>
-            
-            {/* Calculated Pace */}
-            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Calculated Pace</span>
-              <span className="font-semibold text-primary">{calculatePace()}</span>
-            </div>
-          </Card>
-
-          {/* Run Type */}
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-2">
-              <Sparkles className="w-4 h-4 text-muted-foreground" />
-              Run Type
-            </Label>
-            <Select 
-              value={formData.type} 
-              onValueChange={(value) => setFormData({ ...formData, type: value })}
-            >
-              <SelectTrigger className="bg-input border-border text-foreground min-h-[44px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {runTypes.map((type) => (
-                  <SelectItem 
-                    key={type.value} 
-                    value={type.value}
-                    className="text-popover-foreground"
-                  >
-                    <div>
-                      <span className="font-medium">{type.label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">{type.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Card>
-
-          {/* Notes */}
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="notes" className="flex items-center gap-2 text-foreground mb-2">
-              <MessageSquare className="w-4 h-4 text-muted-foreground" />
-              Notes (optional)
-            </Label>
-            <Textarea
-              id="notes"
-              placeholder="How did it feel? Any highlights?"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[100px] resize-none"
+            <span className="anton text-[22px] text-ink-3">:</span>
+            <input
+              type="number"
+              placeholder="00"
+              value={f.sec}
+              onChange={e => set("sec", e.target.value)}
+              className="pl-input text-center mono text-[22px] font-semibold"
             />
-          </Card>
+          </div>
+          <div className="flex justify-between mt-3 pt-3 border-t border-line">
+            <span className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3">Pace</span>
+            <span className="mono text-base font-bold text-race">{pace()} /km</span>
+          </div>
+        </div>
 
-          {/* Submit Button */}
-          <Button 
-            type="submit" 
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[52px] text-lg font-semibold"
-          >
-            Log Run 🏃
-          </Button>
-        </form>
-      </main>
+        {/* Run Type */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <Sparkles size={14} /> Type of run
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {runTypes.map(t => (
+              <button
+                key={t.value}
+                onClick={() => set("type", t.value)}
+                className={`py-[11px] px-2 rounded-xl border-[1.5px] text-center transition-all ${
+                  f.type === t.value 
+                    ? 'border-race bg-race/[0.08]' 
+                    : 'border-line bg-paper'
+                }`}
+              >
+                <div className="font-bold text-[13px] text-ink">{t.label}</div>
+                <div className="text-[10px] text-ink-3 mt-[2px]">{t.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <BottomNav />
+        {/* Notes */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <MessageSquare size={14} /> Notes
+          </div>
+          <textarea
+            className="pl-input resize-none text-[15px] leading-[1.5]"
+            rows={3}
+            placeholder="How did it feel? Any highlights?"
+            value={f.notes}
+            onChange={e => set("notes", e.target.value)}
+          />
+        </div>
+
+        {/* Submit */}
+        <button 
+          className="pl-btn pl-btn-primary mt-1"
+          onClick={() => setSubmitted(true)}
+        >
+          <Check size={18} strokeWidth={2.6} /> Save run
+        </button>
+      </div>
     </div>
   )
 }
