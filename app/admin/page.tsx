@@ -3,14 +3,18 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { BottomNav } from "@/components/navigation"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Settings, ArrowLeft, Target, Calendar, Award, TrendingUp, Check, Users, Route } from "lucide-react"
+import {
+  PacelineMedal,
+  ChevronRight,
+  Settings,
+  Target,
+  Calendar,
+  Medal,
+  TrendingUp,
+  Check,
+  Users,
+  Route,
+} from "@/components/paceline-ui"
 
 type Member = { userId: string; name: string; distance: number; runs: number }
 
@@ -31,10 +35,8 @@ export default function AdminPage() {
       ])
       const runsMap = new Map((runEntries ?? []).map((r: { user_id: string; value: number }) => [r.user_id, Number(r.value)]))
       setMembers((distanceEntries ?? []).map((d: { user_id: string; user_name: string; value: number }) => ({
-        userId: d.user_id,
-        name: d.user_name,
-        distance: Number(d.value),
-        runs: runsMap.get(d.user_id) ?? 0,
+        userId: d.user_id, name: d.user_name,
+        distance: Number(d.value), runs: runsMap.get(d.user_id) ?? 0,
       })))
     }
     loadMembers()
@@ -64,179 +66,209 @@ export default function AdminPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="p-8 bg-card border-border text-center max-w-sm w-full">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-paper flex items-center justify-center p-4 pl-anim">
+        <div className="text-center max-w-sm w-full">
+          <div className="flex justify-center mb-[22px]">
+            <PacelineMedal category="special" size="lg" />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Challenge Created! 🎯</h2>
-          <p className="text-muted-foreground mb-4">Your new challenge is now live for members to join.</p>
-          <Link href="/challenges">
-            <Button variant="outline" className="border-border text-foreground">View Challenges</Button>
-          </Link>
-        </Card>
+          <div className="anton text-[40px] uppercase leading-[0.95]">Created!</div>
+          <p className="text-ink-2 text-[15px] mt-3">
+            Your new quest is now live for members to join.
+          </p>
+          <div className="mt-7 flex flex-col gap-[10px]">
+            <Link href="/challenges" className="pl-btn pl-btn-primary">
+              View Quests
+            </Link>
+            <Link href="/" className="pl-btn pl-btn-ghost">
+              Back to home
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3 mb-4">
-          <Link href="/" className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center min-w-[44px] min-h-[44px]">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">Admin</h1>
-            <p className="text-sm text-muted-foreground">Manage your club</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-accent" />
-          </div>
+    <div className="min-h-screen bg-paper pb-8 pl-anim">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-[22px] pt-[54px] pb-1">
+        <Link
+          href="/"
+          className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2"
+          aria-label="Back"
+        >
+          <ChevronRight size={18} className="rotate-180" />
+        </Link>
+        <div className="flex-1">
+          <div className="pl-eyebrow">Admin</div>
+          <div className="font-bold text-ink">Club Manager</div>
         </div>
-      </header>
+        <div className="w-[38px] h-[38px] rounded-full bg-gold/20 flex items-center justify-center">
+          <Settings size={18} className="text-[#8A5E12]" />
+        </div>
+      </div>
 
-      <main className="px-4 space-y-6">
+      <main className="px-[22px] pt-4 space-y-4">
 
         {/* Members Section */}
-        <section>
+        <div className="pl-card p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Users className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-foreground">Members this month</h2>
-            <span className="text-xs text-muted-foreground">({members.length})</span>
+            <Users size={16} className="text-race" />
+            <span className="font-semibold text-ink">Members this month</span>
+            <span className="mono text-xs text-ink-3">({members.length})</span>
           </div>
-
           {members.length === 0 ? (
-            <Card className="p-4 bg-card border-border text-center">
-              <p className="text-sm text-muted-foreground">No members yet</p>
-            </Card>
+            <p className="text-sm text-ink-3 text-center py-2">No members yet</p>
           ) : (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {members.map(member => (
-                <Card key={member.userId} className="p-3 bg-card border-border flex items-center justify-between">
+                <div key={member.userId} className="flex items-center justify-between py-2 border-b border-line last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-secondary-foreground">
-                        {member.name.split(" ").map(n => n[0]).join("")}
-                      </span>
-                    </div>
-                    <p className="font-medium text-foreground text-sm">{member.name}</p>
+                    <div className="pl-avatar">{member.name.split(" ").map(n => n[0]).join("")}</div>
+                    <p className="font-medium text-ink text-sm">{member.name}</p>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Route className="w-3.5 h-3.5" />{member.distance}km
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="w-3.5 h-3.5" />{member.runs} runs
-                    </span>
+                  <div className="flex items-center gap-4 mono text-[10.5px] text-ink-3">
+                    <span className="flex items-center gap-1"><Route size={12} />{member.distance}km</span>
+                    <span className="flex items-center gap-1"><TrendingUp size={12} />{member.runs} runs</span>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
-        </section>
+        </div>
 
-        {/* Create Challenge Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <Target className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-foreground">Create New Challenge</h2>
+        {/* Create Challenge */}
+        <div className="pl-card p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Target size={16} className="text-race" />
+            <h2 className="font-semibold text-ink">Create New Quest</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Card className="p-4 bg-card border-border">
-              <Label htmlFor="title" className="text-foreground mb-2 block">Challenge Title</Label>
-              <Input id="title" placeholder="e.g. Summer Distance Challenge"
-                value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="bg-input border-border text-foreground min-h-[44px]" required />
-            </Card>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="pl-field">
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">Quest Title</div>
+              <input
+                type="text"
+                placeholder="e.g. Summer Distance Challenge"
+                value={formData.title}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                className="pl-input"
+                required
+              />
+            </div>
 
-            <Card className="p-4 bg-card border-border">
-              <Label htmlFor="description" className="text-foreground mb-2 block">Description</Label>
-              <Textarea id="description" placeholder="Describe the challenge and motivate participants..."
-                value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-input border-border text-foreground min-h-[100px] resize-none" required />
-            </Card>
+            <div className="pl-field">
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">Description</div>
+              <textarea
+                placeholder="Describe the quest and motivate participants..."
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                className="pl-input resize-none"
+                rows={3}
+                required
+              />
+            </div>
 
-            <Card className="p-4 bg-card border-border">
-              <Label className="flex items-center gap-2 text-foreground mb-3">
-                <Calendar className="w-4 h-4 text-muted-foreground" />Challenge Period
-              </Label>
+            <div className="pl-field">
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+                <Calendar size={14} /> Quest Period
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="startDate" className="text-xs text-muted-foreground mb-1 block">Start Date</Label>
-                  <Input id="startDate" type="date" value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="bg-input border-border text-foreground min-h-[44px]" required />
+                  <div className="text-xs text-ink-3 mb-1">Start Date</div>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                    className="pl-input"
+                    required
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="endDate" className="text-xs text-muted-foreground mb-1 block">End Date</Label>
-                  <Input id="endDate" type="date" value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="bg-input border-border text-foreground min-h-[44px]" required />
+                  <div className="text-xs text-ink-3 mb-1">End Date</div>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                    className="pl-input"
+                    required
+                  />
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-4 bg-card border-border">
-              <Label htmlFor="badge" className="flex items-center gap-2 text-foreground mb-2">
-                <Award className="w-4 h-4 text-accent" />Badge Reward Name
-              </Label>
-              <Input id="badge" placeholder="e.g. Summer Champion"
-                value={formData.badgeReward} onChange={(e) => setFormData({ ...formData, badgeReward: e.target.value })}
-                className="bg-input border-border text-foreground min-h-[44px]" required />
-              <p className="text-xs text-muted-foreground mt-1">Members earn this badge upon completion</p>
-            </Card>
+            <div className="pl-field">
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+                <Medal size={14} className="text-[#8A5E12]" /> Patch Reward Name
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Summer Champion"
+                value={formData.badgeReward}
+                onChange={e => setFormData({ ...formData, badgeReward: e.target.value })}
+                className="pl-input"
+                required
+              />
+              <p className="text-xs text-ink-3 mt-2">Members earn this patch upon completion</p>
+            </div>
 
-            <Card className="p-4 bg-card border-border">
-              <Label className="flex items-center gap-2 text-foreground mb-3">
-                <TrendingUp className="w-4 h-4 text-muted-foreground" />Target Goal
-              </Label>
+            <div className="pl-field">
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+                <TrendingUp size={14} /> Target Goal
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">Metric</Label>
-                  <Select value={formData.targetMetric} onValueChange={(value) => setFormData({ ...formData, targetMetric: value })}>
-                    <SelectTrigger className="bg-input border-border text-foreground min-h-[44px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
-                      <SelectItem value="distance" className="text-popover-foreground">Distance (km)</SelectItem>
-                      <SelectItem value="runs" className="text-popover-foreground">Number of Runs</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="text-xs text-ink-3 mb-1">Metric</div>
+                  <select
+                    value={formData.targetMetric}
+                    onChange={e => setFormData({ ...formData, targetMetric: e.target.value })}
+                    className="pl-input"
+                  >
+                    <option value="distance">Distance (km)</option>
+                    <option value="runs">Number of Runs</option>
+                  </select>
                 </div>
                 <div>
-                  <Label htmlFor="targetValue" className="text-xs text-muted-foreground mb-1 block">Target Value</Label>
-                  <Input id="targetValue" type="number" min="1" placeholder="e.g. 100"
-                    value={formData.targetValue} onChange={(e) => setFormData({ ...formData, targetValue: e.target.value })}
-                    className="bg-input border-border text-foreground min-h-[44px]" required />
+                  <div className="text-xs text-ink-3 mb-1">Target Value</div>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 100"
+                    value={formData.targetValue}
+                    onChange={e => setFormData({ ...formData, targetValue: e.target.value })}
+                    className="pl-input"
+                    required
+                  />
                 </div>
               </div>
-            </Card>
+            </div>
 
             {formData.title && (
-              <Card className="p-4 bg-primary/10 border-primary/30">
-                <p className="text-xs text-muted-foreground mb-2">Preview</p>
-                <h3 className="font-semibold text-foreground">{formData.title}</h3>
-                {formData.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{formData.description}</p>}
-                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+              <div className="pl-pine p-4">
+                <p className="mono text-[10px] tracking-[0.16em] uppercase text-paper/55 mb-2">Preview</p>
+                <h3 className="font-bold text-paper">{formData.title}</h3>
+                {formData.description && (
+                  <p className="text-sm text-paper/70 mt-1 line-clamp-2">{formData.description}</p>
+                )}
+                <div className="flex items-center gap-4 mt-3 mono text-[10.5px] text-paper/60">
                   {formData.targetValue && (
                     <span>Goal: {formData.targetValue} {formData.targetMetric === "distance" ? "km" : "runs"}</span>
                   )}
-                  {formData.badgeReward && <span className="text-accent">🏅 {formData.badgeReward}</span>}
+                  {formData.badgeReward && <span className="text-gold">{formData.badgeReward}</span>}
                 </div>
-              </Card>
+              </div>
             )}
 
-            <Button type="submit" disabled={saving}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[52px] text-lg font-semibold">
-              {saving ? "Creating..." : "Create Challenge 🎯"}
-            </Button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="pl-btn pl-btn-primary mt-1 disabled:opacity-50"
+            >
+              <Check size={18} strokeWidth={2.6} /> {saving ? "Creating..." : "Create Quest"}
+            </button>
           </form>
-        </section>
+        </div>
       </main>
-
-      <BottomNav />
     </div>
   )
 }

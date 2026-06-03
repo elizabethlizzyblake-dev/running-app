@@ -2,96 +2,41 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { BottomNav, AdminNav } from "@/components/navigation"
-import { Card } from "@/components/ui/card"
-import { BadgeIcon, type BadgeType } from "@/components/badge-icon"
+import {
+  RouteMotif,
+  PacelineMedal,
+  PacelineNav,
+  SettingsButton,
+  ChevronUp,
+  ChevronDown,
+} from "@/components/paceline-ui"
+import { type MedalCategory } from "@/components/paceline-ui"
 import { availableBadges } from "@/lib/mock-data"
-import { Trophy, Lock, ChevronDown, ChevronUp } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 type DbBadge = {
   id: string; name: string; description: string
   category: string; icon: string; earned_date: string; requirement: string
 }
 
-const categories: { key: BadgeType; label: string; description: string }[] = [
-  { key: "distance", label: "Distance", description: "Rack up those kilometers!" },
-  { key: "consistency", label: "Consistency", description: "Show up every day" },
-  { key: "pace", label: "Pace Improvement", description: "Getting faster!" },
-  { key: "community", label: "Community", description: "Better together" },
-  { key: "monthly", label: "Monthly Challenges", description: "Special achievements" },
+const badgeCategories: { key: MedalCategory; label: string; desc: string }[] = [
+  { key: "distance", label: "Distance", desc: "Rack up the kilometers" },
+  { key: "consistency", label: "Consistency", desc: "Show up every day" },
+  { key: "pace", label: "Pace", desc: "Getting faster" },
+  { key: "community", label: "Community", desc: "Better together" },
+  { key: "monthly", label: "Monthly", desc: "Special hauls" },
+  { key: "special", label: "Legendary", desc: "The big ones" },
 ]
-
-function BadgeCard({ name, description, category, requirement, earned, earnedDate }: {
-  name: string; description: string; category: string
-  requirement: string; earned: boolean; earnedDate?: string
-}) {
-  return (
-    <div className={cn("flex flex-col items-center p-3 rounded-xl transition-all", earned ? "bg-card" : "bg-muted/30")}>
-      <div className="relative">
-        <BadgeIcon type={category as BadgeType} size="lg" earned={earned} />
-        {!earned && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-muted flex items-center justify-center">
-            <Lock className="w-3 h-3 text-muted-foreground" />
-          </div>
-        )}
-      </div>
-      <h4 className={cn("text-sm font-medium mt-2 text-center", earned ? "text-foreground" : "text-muted-foreground")}>
-        {name}
-      </h4>
-      {earned && earnedDate && (
-        <p className="text-xs text-muted-foreground mt-1">
-          {new Date(earnedDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-        </p>
-      )}
-      {!earned && <p className="text-xs text-muted-foreground mt-1 text-center">{requirement}</p>}
-    </div>
-  )
-}
-
-function CategorySection({ category, earnedBadges }: {
-  category: typeof categories[0]; earnedBadges: DbBadge[]
-}) {
-  const [expanded, setExpanded] = useState(true)
-  const categoryEarned = earnedBadges.filter(b => b.category === category.key)
-  const earnedNames = new Set(categoryEarned.map(b => b.name))
-  const categoryAvailable = availableBadges.filter(b => b.category === category.key && !earnedNames.has(b.name))
-  const total = categoryEarned.length + categoryAvailable.length
-
-  return (
-    <section className="mb-6">
-      <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between py-2 min-h-[44px]">
-        <div className="flex items-center gap-3">
-          <BadgeIcon type={category.key} size="sm" earned />
-          <div className="text-left">
-            <h3 className="font-semibold text-foreground">{category.label}</h3>
-            <p className="text-xs text-muted-foreground">{category.description}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{categoryEarned.length}/{total}</span>
-          {expanded ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
-        </div>
-      </button>
-
-      {expanded && (
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {categoryEarned.map(b => (
-            <BadgeCard key={b.id} name={b.name} description={b.description}
-              category={b.category} requirement={b.requirement} earned earnedDate={b.earned_date} />
-          ))}
-          {categoryAvailable.map(b => (
-            <BadgeCard key={b.id} name={b.name} description={b.description}
-              category={b.category} requirement={b.requirement} earned={false} />
-          ))}
-        </div>
-      )}
-    </section>
-  )
-}
 
 export default function TrophiesPage() {
   const [earnedBadges, setEarnedBadges] = useState<DbBadge[]>([])
+  const [open, setOpen] = useState<Record<string, boolean>>({
+    distance: true,
+    consistency: true,
+    pace: false,
+    community: false,
+    monthly: false,
+    special: false,
+  })
 
   useEffect(() => {
     async function load() {
@@ -105,49 +50,108 @@ export default function TrophiesPage() {
     load()
   }, [])
 
+  const earnedIds = new Set(earnedBadges.map(b => b.name))
   const totalEarned = earnedBadges.length
   const totalAvailable = totalEarned + availableBadges.length
+  const collectionPct = totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <AdminNav />
+    <div className="min-h-screen bg-paper pb-[110px] pl-anim">
+      <SettingsButton />
 
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-            <Trophy className="w-6 h-6 text-accent" />
+      {/* Header */}
+      <div className="px-[22px] pt-[54px] pb-[6px]">
+        <div className="flex items-center gap-[9px]">
+          <div className="relative w-[26px] h-[26px] flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
+            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Trophy Cabinet</h1>
-            <p className="text-sm text-muted-foreground">{totalEarned} of {totalAvailable} badges earned</p>
-          </div>
+          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
         </div>
-      </header>
-
-      <div className="mx-4 mb-6">
-        <Card className="p-4 bg-primary/10 border-primary/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Collection Progress</p>
-              <p className="text-2xl font-bold text-primary">
-                {totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0}%
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Next badge in</p>
-              <p className="text-lg font-semibold text-foreground">32.5km</p>
-            </div>
-          </div>
-        </Card>
       </div>
 
-      <main className="px-4">
-        {categories.map(category => (
-          <CategorySection key={category.key} category={category} earnedBadges={earnedBadges} />
-        ))}
-      </main>
+      <div className="px-[22px] pt-[14px] pb-2">
+        <div className="pl-eyebrow">Trophy Cabinet</div>
+        <h1 className="pl-heading mt-2">The<br />Cabinet</h1>
+        <div className="text-sm text-ink-2 mt-2">{totalEarned} of {totalAvailable} patches earned</div>
+      </div>
 
-      <BottomNav />
+      {/* Collection Hero */}
+      <div className="px-[22px] pt-[10px] pb-[6px]">
+        <div className="pl-pine p-[22px] flex items-center justify-between">
+          <RouteMotif />
+          <div className="relative z-[2]">
+            <div className="mono text-[10.5px] tracking-[0.16em] uppercase text-paper/55">Collection</div>
+            <div className="flex items-baseline gap-1">
+              <span className="anton text-[56px] leading-[0.9] text-gold">{collectionPct}</span>
+              <span className="anton text-[26px] text-gold">%</span>
+            </div>
+          </div>
+          <div className="relative z-[2] text-right">
+            <div className="mono text-[10.5px] tracking-[0.12em] uppercase text-paper/55">Next patch in</div>
+            <div className="mono text-[22px] font-semibold mt-1">
+              32.5<span className="text-sm text-paper/60">km</span>
+            </div>
+            <div className="text-xs text-paper/60 mt-[2px]">100K Legend</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className="px-[22px] pt-[14px]">
+        {badgeCategories.map(cat => {
+          const categoryEarned = earnedBadges.filter(b => b.category === cat.key)
+          const earnedNames = new Set(categoryEarned.map(b => b.name))
+          const categoryAvailable = availableBadges.filter(b => b.category === cat.key && !earnedNames.has(b.name))
+          const allInCat = [...categoryEarned, ...categoryAvailable]
+          if (!allInCat.length) return null
+          const isOpen = open[cat.key]
+
+          return (
+            <div key={cat.key} className="mb-[10px]">
+              <button
+                onClick={() => setOpen(o => ({ ...o, [cat.key]: !o[cat.key] }))}
+                className="w-full bg-transparent border-none cursor-pointer flex items-center gap-3 py-[10px]"
+              >
+                <PacelineMedal category={cat.key} size="sm" />
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-[15px]">{cat.label}</div>
+                  <div className="mono text-[10.5px] text-ink-3 tracking-[0.04em]">{cat.desc}</div>
+                </div>
+                <span className="mono text-xs text-ink-3">{categoryEarned.length}/{allInCat.length}</span>
+                {isOpen ? (
+                  <ChevronUp size={18} className="text-ink-3" />
+                ) : (
+                  <ChevronDown size={18} className="text-ink-3" />
+                )}
+              </button>
+
+              {isOpen && (
+                <div className="grid grid-cols-3 gap-[10px] py-[6px] pb-3">
+                  {categoryEarned.map(b => (
+                    <div key={b.id} className="flex flex-col items-center text-center gap-2 p-3 rounded-[14px] bg-card border border-line">
+                      <PacelineMedal category={b.category as MedalCategory} size="md" />
+                      <div className="text-[11.5px] font-semibold leading-tight text-ink">{b.name}</div>
+                      <div className="mono text-[9.5px] text-ink-3 tracking-[0.02em]">
+                        {new Date(b.earned_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </div>
+                    </div>
+                  ))}
+                  {categoryAvailable.map(b => (
+                    <div key={b.id} className="flex flex-col items-center text-center gap-2 p-3 rounded-[14px] bg-transparent border border-dashed border-line">
+                      <PacelineMedal category={b.category as MedalCategory} size="md" locked />
+                      <div className="text-[11.5px] font-semibold leading-tight text-ink-3">{b.name}</div>
+                      <div className="mono text-[9.5px] text-ink-3 tracking-[0.02em]">{b.requirement}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <PacelineNav active="/trophies" />
     </div>
   )
 }

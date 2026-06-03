@@ -3,10 +3,6 @@
 import { useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -20,9 +16,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError("")
-
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-
     if (error) {
       setError(error.message)
       setLoading(false)
@@ -33,56 +27,66 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm p-6 bg-card border-border">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-muted-foreground text-sm mt-1">Sign in to your account</p>
+    <div className="min-h-screen bg-paper flex items-center justify-center p-6 pl-anim">
+      <div className="w-full max-w-sm">
+        {/* Brand */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-[38px] h-[38px] mb-4">
+            <div className="absolute inset-0 rounded-full border-[5px] border-race" />
+            <div className="absolute w-[11px] h-[11px] rounded-full bg-gold top-[-2px] left-1/2 -translate-x-1/2" />
+          </div>
+          <span className="anton text-2xl tracking-[0.07em] text-ink">PACELINE</span>
+          <p className="mono text-[11px] tracking-[0.14em] uppercase text-ink-3 mt-1">Run together. Rise together.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <Label htmlFor="email" className="text-foreground">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="bg-input border-border text-foreground min-h-[44px] mt-1"
-              required
-            />
-          </div>
+        <div className="pl-card p-6">
+          <div className="pl-eyebrow mb-1">Welcome back</div>
+          <h1 className="font-extrabold text-[22px] text-ink mb-5">Sign in</h1>
 
-          <div>
-            <Label htmlFor="password" className="text-foreground">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="bg-input border-border text-foreground min-h-[44px] mt-1"
-              required
-            />
-          </div>
+          <form onSubmit={handleLogin} className="flex flex-col gap-3">
+            <div>
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-2">Email</div>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="pl-input"
+                required
+              />
+            </div>
 
-          {error && <p className="text-destructive text-sm">{error}</p>}
+            <div>
+              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-2">Password</div>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pl-input"
+                required
+              />
+            </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            {error && (
+              <p className="text-race text-sm font-medium">{error}</p>
+            )}
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="pl-btn pl-btn-primary mt-2 disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-sm text-ink-3 mt-4">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-primary hover:underline">Sign up</Link>
+          <Link href="/signup" className="text-race font-semibold hover:text-race-deep">Sign up</Link>
         </p>
-      </Card>
+      </div>
     </div>
   )
 }

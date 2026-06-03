@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { BottomNav, AdminNav } from "@/components/navigation"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  PacelineMedal,
+  ChevronRight,
+  Route,
+  Clock,
+  Sparkles,
+  MessageSquare,
+  Check,
+} from "@/components/paceline-ui"
 import { runTypes } from "@/lib/mock-data"
-import { Footprints, Calendar, Clock, Route, MessageSquare, Sparkles, Check } from "lucide-react"
+import Link from "next/link"
 
 type Run = { distance: number; date: string }
 
@@ -57,11 +59,10 @@ export default function LogRunPage() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     distance: "",
-    hours: "",
     minutes: "",
     seconds: "",
     type: "easy",
-    notes: ""
+    notes: "",
   })
 
   useEffect(() => {
@@ -73,14 +74,27 @@ export default function LogRunPage() {
     })
   }, [])
 
+  const set = (k: string, v: string) => setFormData(p => ({ ...p, [k]: v }))
+
+  const calculatePace = () => {
+    const distance = parseFloat(formData.distance)
+    const totalMinutes = (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
+    if (distance > 0 && totalMinutes > 0) {
+      const pace = totalMinutes / distance
+      const paceMin = Math.floor(pace)
+      const paceSec = Math.round((pace - paceMin) * 60)
+      return `${paceMin}:${paceSec.toString().padStart(2, "0")}`
+    }
+    return "-:--"
+  }
+
   const upsertLeaderboard = async (uid: string, name: string, category: string, value: number) => {
     const { data: existing } = await supabase
       .from('leaderboard_entries').select('id')
       .eq('user_id', uid).eq('category', category).single()
 
     if (existing) {
-      await supabase.from('leaderboard_entries')
-        .update({ value }).eq('id', existing.id)
+      await supabase.from('leaderboard_entries').update({ value }).eq('id', existing.id)
     } else {
       const { count } = await supabase
         .from('leaderboard_entries').select('*', { count: 'exact', head: true })
@@ -96,9 +110,7 @@ export default function LogRunPage() {
     if (!userId) return
 
     const distance = parseFloat(formData.distance)
-    const duration = (parseInt(formData.hours) || 0) * 60
-      + (parseInt(formData.minutes) || 0)
-      + (parseInt(formData.seconds) || 0) / 60
+    const duration = (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
     const pace = duration / distance
 
     await supabase.from('runs').insert({
@@ -117,12 +129,10 @@ export default function LogRunPage() {
       .from('runs').select('distance, date').eq('user_id', userId).order('date')
 
     const monthRuns = (allRuns ?? []).filter(r => r.date >= monthStart)
-
     if (monthRuns) {
       const totalDistance = monthRuns.reduce((sum, r) => sum + Number(r.distance), 0)
       const totalRuns = monthRuns.length
       const longestRun = monthRuns.reduce((max, r) => Math.max(max, Number(r.distance)), 0)
-
       await Promise.all([
         upsertLeaderboard(userId, userName, 'distance', Math.round(totalDistance * 10) / 10),
         upsertLeaderboard(userId, userName, 'runs', totalRuns),
@@ -142,17 +152,13 @@ export default function LogRunPage() {
       }) => {
         const challenge = row.challenges
         if (!challenge) return
-
         const { data: challengeRuns } = await supabase
           .from('runs').select('distance').eq('user_id', userId)
           .gte('date', challenge.start_date).lte('date', challenge.end_date)
-
         if (!challengeRuns) return
-
         const progress = challenge.target_metric === 'distance'
           ? Math.round(challengeRuns.reduce((sum, r) => sum + Number(r.distance), 0) * 10) / 10
           : challengeRuns.length
-
         await supabase.from('challenge_participants')
           .update({ progress })
           .eq('user_id', userId).eq('challenge_id', challenge.id)
@@ -172,156 +178,183 @@ export default function LogRunPage() {
     }
 
     setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      setFormData({
-        date: new Date().toISOString().split("T")[0],
-        distance: "", hours: "", minutes: "", seconds: "", type: "easy", notes: ""
-      })
-    }, 2000)
-  }
-
-  const calculatePace = () => {
-    const distance = parseFloat(formData.distance)
-    const totalMinutes =
-      (parseInt(formData.hours) || 0) * 60 +
-      (parseInt(formData.minutes) || 0) +
-      (parseInt(formData.seconds) || 0) / 60
-    if (distance > 0 && totalMinutes > 0) {
-      const pace = totalMinutes / distance
-      const paceMin = Math.floor(pace)
-      const paceSec = Math.round((pace - paceMin) * 60)
-      return `${paceMin}:${paceSec.toString().padStart(2, "0")} /km`
-    }
-    return "--:-- /km"
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="p-8 bg-card border-border text-center max-w-sm w-full">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-primary" />
+      <div className="min-h-screen bg-paper flex items-center justify-center pl-anim">
+        <div className="text-center px-8">
+          <div className="flex justify-center mb-[22px]">
+            <PacelineMedal category="distance" size="lg" />
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Run Logged! 🎉</h2>
-          <p className="text-muted-foreground">Great job getting out there! Every run counts.</p>
+          <div className="anton text-[40px] uppercase leading-[0.95]">Logged!</div>
+          <p className="text-ink-2 text-[15px] mt-3 max-w-[240px] mx-auto">
+            {formData.distance ? `${formData.distance}km at ${calculatePace()}/km` : "Nice work"} — the club just moved forward.
+          </p>
           {earnedBadges.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm font-semibold text-foreground mb-2">
-                🏅 {earnedBadges.length === 1 ? 'Badge' : 'Badges'} earned!
-              </p>
+            <div className="mt-4 pt-4 border-t border-line">
+              <p className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">New patch{earnedBadges.length > 1 ? 'es' : ''} earned!</p>
               {earnedBadges.map(name => (
-                <p key={name} className="text-sm text-primary font-medium">{name}</p>
+                <p key={name} className="text-sm text-race font-semibold">{name}</p>
               ))}
             </div>
           )}
-        </Card>
+          <div className="mt-7 flex flex-col gap-[10px]">
+            <Link href="/" className="pl-btn pl-btn-primary">
+              Back to home
+            </Link>
+            <button
+              className="pl-btn pl-btn-ghost"
+              onClick={() => {
+                setSubmitted(false)
+                setEarnedBadges([])
+                setFormData({ date: new Date().toISOString().split("T")[0], distance: "", minutes: "", seconds: "", type: "easy", notes: "" })
+              }}
+            >
+              Log another
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <AdminNav />
+    <div className="min-h-screen bg-paper pb-[130px] pl-anim">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-[22px] pt-[54px] pb-1">
+        <Link
+          href="/"
+          className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2"
+          aria-label="Back"
+        >
+          <ChevronRight size={18} className="rotate-180" />
+        </Link>
+        <div className="pl-eyebrow">New entry</div>
+      </div>
 
-      <header className="px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-            <Footprints className="w-6 h-6 text-primary" />
+      <div className="px-[22px] pt-[6px] pb-2">
+        <h1 className="pl-heading">Log a Run</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="px-[22px] pt-2 flex flex-col gap-3">
+        {/* Date */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">Date</div>
+          <input
+            type="date"
+            value={formData.date}
+            onChange={e => set("date", e.target.value)}
+            className="pl-input"
+            required
+          />
+        </div>
+
+        {/* Distance Hero Field */}
+        <div className="pl-field text-center py-5 px-4">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center justify-center gap-2">
+            <Route size={14} /> Distance
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Log a Run</h1>
-            <p className="text-sm text-muted-foreground">Record your achievement</p>
+          <div className="flex items-baseline justify-center gap-2">
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="0.0"
+              value={formData.distance}
+              onChange={e => set("distance", e.target.value)}
+              className="w-[130px] bg-transparent border-none text-center anton text-[44px] outline-none placeholder:text-ink-3/50"
+              required
+            />
+            <span className="mono text-lg text-ink-3">km</span>
           </div>
         </div>
-      </header>
 
-      <main className="px-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="date" className="flex items-center gap-2 text-foreground mb-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />Date
-            </Label>
-            <Input id="date" type="date" value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px]" required />
-          </Card>
-
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="distance" className="flex items-center gap-2 text-foreground mb-2">
-              <Route className="w-4 h-4 text-muted-foreground" />Distance (km)
-            </Label>
-            <Input id="distance" type="number" step="0.1" min="0" placeholder="e.g. 5.0"
-              value={formData.distance}
-              onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[44px] text-lg" required />
-          </Card>
-
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />Duration
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { key: "hours", label: "Hours", max: 23 },
-                { key: "minutes", label: "Minutes", max: 59 },
-                { key: "seconds", label: "Seconds", max: 59 },
-              ].map(field => (
-                <div key={field.key}>
-                  <Input type="number" min="0" max={field.max} placeholder="0"
-                    value={formData[field.key as keyof typeof formData]}
-                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                    className="bg-input border-border text-foreground min-h-[44px] text-center"
-                    required={field.key === "minutes"} />
-                  <p className="text-xs text-muted-foreground text-center mt-1">{field.label}</p>
-                </div>
-              ))}
+        {/* Duration + Pace */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <Clock size={14} /> Duration
+          </div>
+          <div className="flex gap-[10px] items-center">
+            <div className="flex-1">
+              <input
+                type="number"
+                min="0"
+                placeholder="00"
+                value={formData.minutes}
+                onChange={e => set("minutes", e.target.value)}
+                className="pl-input text-center mono text-[22px] font-semibold"
+                required
+              />
+              <p className="text-xs text-ink-3 text-center mt-1">Minutes</p>
             </div>
-            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Calculated Pace</span>
-              <span className="font-semibold text-primary">{calculatePace()}</span>
+            <span className="anton text-[22px] text-ink-3 mb-5">:</span>
+            <div className="flex-1">
+              <input
+                type="number"
+                min="0"
+                max="59"
+                placeholder="00"
+                value={formData.seconds}
+                onChange={e => set("seconds", e.target.value)}
+                className="pl-input text-center mono text-[22px] font-semibold"
+              />
+              <p className="text-xs text-ink-3 text-center mt-1">Seconds</p>
             </div>
-          </Card>
+          </div>
+          <div className="flex justify-between mt-3 pt-3 border-t border-line">
+            <span className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3">Pace</span>
+            <span className="mono text-base font-bold text-race">{calculatePace()} /km</span>
+          </div>
+        </div>
 
-          <Card className="p-4 bg-card border-border">
-            <Label className="flex items-center gap-2 text-foreground mb-2">
-              <Sparkles className="w-4 h-4 text-muted-foreground" />Run Type
-            </Label>
-            <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-              <SelectTrigger className="bg-input border-border text-foreground min-h-[44px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {runTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value} className="text-popover-foreground">
-                    <div>
-                      <span className="font-medium">{type.label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">{type.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Card>
+        {/* Run Type */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <Sparkles size={14} /> Type of run
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {runTypes.map(t => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => set("type", t.value)}
+                className={`py-[11px] px-2 rounded-xl border-[1.5px] text-center transition-all ${
+                  formData.type === t.value
+                    ? 'border-race bg-race/[0.08]'
+                    : 'border-line bg-paper'
+                }`}
+              >
+                <div className="font-bold text-[13px] text-ink">{t.label}</div>
+                <div className="text-[10px] text-ink-3 mt-[2px]">{t.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-          <Card className="p-4 bg-card border-border">
-            <Label htmlFor="notes" className="flex items-center gap-2 text-foreground mb-2">
-              <MessageSquare className="w-4 h-4 text-muted-foreground" />Notes (optional)
-            </Label>
-            <Textarea id="notes" placeholder="How did it feel? Any highlights?"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="bg-input border-border text-foreground min-h-[100px] resize-none" />
-          </Card>
+        {/* Notes */}
+        <div className="pl-field">
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
+            <MessageSquare size={14} /> Notes
+          </div>
+          <textarea
+            className="pl-input resize-none text-[15px] leading-[1.5]"
+            rows={3}
+            placeholder="How did it feel? Any highlights?"
+            value={formData.notes}
+            onChange={e => set("notes", e.target.value)}
+          />
+        </div>
 
-          <Button type="submit" disabled={!userId}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 min-h-[52px] text-lg font-semibold">
-            Log Run 🏃
-          </Button>
-        </form>
-      </main>
-
-      <BottomNav />
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={!userId}
+          className="pl-btn pl-btn-primary mt-1 disabled:opacity-50"
+        >
+          <Check size={18} strokeWidth={2.6} /> Save run
+        </button>
+      </form>
     </div>
   )
 }
