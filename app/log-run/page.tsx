@@ -105,6 +105,25 @@ export default function LogRunPage() {
     }
   }
 
+  const rerankCategory = async (category: string) => {
+    const { data: entries } = await supabase
+      .from('leaderboard_entries')
+      .select('id, rank, value')
+      .eq('category', category)
+      .order('value', { ascending: false })
+
+    if (!entries) return
+
+    await Promise.all(entries.map((entry, index) => {
+      const newRank = index + 1
+      const change = entry.rank - newRank
+      return supabase
+        .from('leaderboard_entries')
+        .update({ rank: newRank, change })
+        .eq('id', entry.id)
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!userId) return
@@ -137,6 +156,11 @@ export default function LogRunPage() {
         upsertLeaderboard(userId, userName, 'distance', Math.round(totalDistance * 10) / 10),
         upsertLeaderboard(userId, userName, 'runs', totalRuns),
         upsertLeaderboard(userId, userName, 'longest', Math.round(longestRun * 10) / 10),
+      ])
+      await Promise.all([
+        rerankCategory('distance'),
+        rerankCategory('runs'),
+        rerankCategory('longest'),
       ])
     }
 
