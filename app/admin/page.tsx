@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import {
   PacelineMedal,
@@ -19,6 +20,8 @@ import {
 type Member = { userId: string; name: string; distance: number; runs: number }
 
 export default function AdminPage() {
+  const router = useRouter()
+  const [checking, setChecking] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
@@ -28,7 +31,17 @@ export default function AdminPage() {
   })
 
   useEffect(() => {
-    async function loadMembers() {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.replace('/login'); return }
+
+      const { data: profile } = await supabase
+        .from('users').select('is_admin').eq('id', user.id).single()
+
+      if (!profile?.is_admin) { router.replace('/'); return }
+
+      setChecking(false)
+
       const [{ data: distanceEntries }, { data: runEntries }] = await Promise.all([
         supabase.from('leaderboard_entries').select('user_id, user_name, value').eq('category', 'distance').order('value', { ascending: false }),
         supabase.from('leaderboard_entries').select('user_id, value').eq('category', 'runs'),
@@ -39,8 +52,8 @@ export default function AdminPage() {
         distance: Number(d.value), runs: runsMap.get(d.user_id) ?? 0,
       })))
     }
-    loadMembers()
-  }, [])
+    init()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,6 +76,8 @@ export default function AdminPage() {
       setFormData({ title: "", description: "", startDate: "", endDate: "", badgeReward: "", targetMetric: "distance", targetValue: "" })
     }, 2000)
   }
+
+  if (checking) return null
 
   if (submitted) {
     return (
