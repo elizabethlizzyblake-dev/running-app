@@ -64,8 +64,6 @@ export default function LogRunPage() {
     type: "easy",
     notes: "",
   })
-  
-  const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
