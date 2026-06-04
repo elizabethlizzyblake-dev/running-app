@@ -23,10 +23,12 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/signup')
+  const { pathname } = request.nextUrl
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  // / is the public landing page — unauthenticated users see it, authenticated see the dashboard
+  const isPublic = pathname === '/'
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

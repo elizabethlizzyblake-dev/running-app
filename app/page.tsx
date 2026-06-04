@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 import {
   RouteMotif,
   PacelineMedal,
@@ -13,31 +12,118 @@ import {
 } from "@/components/paceline-ui"
 import { type MedalCategory } from "@/components/paceline-ui"
 import { AvatarCircle } from "@/components/avatar-circle"
+import { formatPace } from "@/lib/formatting"
+import { computeStreak } from "@/lib/achievements"
 import Link from "next/link"
+import { Map, Medal, Users, Zap } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
 const TARGET_DISTANCE = 100
 
-function computeStreak(dates: string[]) {
-  const dateSet = new Set(dates)
-  const today = new Date()
-  let streak = 0
-  for (let i = 0; i < 60; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    if (dateSet.has(d.toISOString().split('T')[0])) streak++
-    else break
-  }
-  return streak
+// ── Landing page (unauthenticated) ────────────────────────────────
+
+function LandingPage() {
+  return (
+    <div className="min-h-screen bg-paper flex flex-col">
+      {/* Nav */}
+      <div className="flex items-center justify-between px-[22px] pt-[54px] pb-4">
+        <div className="flex items-center gap-[9px]">
+          <div className="relative w-[26px] h-[26px] flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
+            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
+          </div>
+          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+        </div>
+        <Link
+          href="/login"
+          className="mono text-[12px] tracking-[0.06em] font-semibold text-ink-2 border border-line rounded-full px-4 py-2"
+        >
+          Log in
+        </Link>
+      </div>
+
+      {/* Hero */}
+      <div className="px-[22px] pt-[28px] pb-[10px]">
+        <div className="pl-pine p-[26px] relative overflow-hidden">
+          <RouteMotif />
+          <div className="relative z-[2]">
+            <div className="mono text-[10.5px] tracking-[0.16em] uppercase text-paper/55 mb-3">
+              Run Club &middot; Track &middot; Compete
+            </div>
+            <h1 className="anton text-[38px] leading-[0.95] text-paper uppercase">
+              Run together.<br />Go further.
+            </h1>
+            <p className="text-paper/70 text-[14px] mt-4 leading-[1.5] max-w-[280px]">
+              Log your runs, join group challenges, earn badges and climb the leaderboard — with your club.
+            </p>
+            <Link
+              href="/signup"
+              className="mt-6 inline-flex items-center gap-2 bg-gold text-ink font-bold text-[14px] px-6 py-[13px] rounded-[14px]"
+            >
+              Join the club — it&apos;s free
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Feature grid */}
+      <div className="px-[22px] pt-[6px] pb-[10px] grid grid-cols-2 gap-3">
+        {[
+          { icon: <Zap size={20} className="text-race" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
+          { icon: <Users size={20} className="text-pine" />, title: 'Challenges', body: 'Join group quests and track progress together.' },
+          { icon: <Medal size={20} className="text-[#E8A93C]" />, title: 'Earn badges', body: 'Unlock patches for milestones and streaks.' },
+          { icon: <Map size={20} className="text-ink-2" />, title: 'Route maps', body: 'Virtual routes like Norfolk Coastal Challenge.' },
+        ].map((f) => (
+          <div key={f.title} className="pl-card p-4">
+            <div className="mb-2">{f.icon}</div>
+            <div className="font-bold text-[14px] mb-1">{f.title}</div>
+            <p className="text-[12px] text-ink-3 leading-[1.4]">{f.body}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA strip */}
+      <div className="px-[22px] mt-auto pt-4 pb-[48px] flex flex-col gap-3">
+        <Link href="/signup" className="pl-btn pl-btn-primary">
+          Create your account
+        </Link>
+        <Link href="/login" className="pl-btn pl-btn-ghost">
+          Already have an account? Log in
+        </Link>
+      </div>
+    </div>
+  )
 }
 
-function formatPace(pace: number) {
-  if (!pace) return "0:00"
-  const m = Math.floor(pace)
-  const s = Math.round((pace - m) * 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
+// ── Motivation helpers ────────────────────────────────────────────
+
+function suggestNextRun(lastRunDate: string | null, lastRunType: string | null): string {
+  if (!lastRunDate) return 'Time to log your first run!'
+  const daysSince = Math.floor(
+    (Date.now() - new Date(lastRunDate).getTime()) / (1000 * 60 * 60 * 24)
+  )
+  if (daysSince === 0) return 'Great work today! Rest up or do an easy recovery.'
+  if (daysSince === 1) {
+    if (lastRunType === 'long') return 'After a long run, try an easy recovery jog today.'
+    if (lastRunType === 'interval' || lastRunType === 'tempo') return 'Hard session yesterday — an easy run today will pay dividends.'
+    return 'Keep the momentum — a short easy run today will do it.'
+  }
+  if (daysSince <= 3) return 'You\'ve had a rest day or two. A steady run now will keep your streak alive.'
+  return 'It\'s been a few days — any run counts. Even 2km is a win.'
 }
+
+function streakMessage(streak: number): string {
+  if (streak === 0) return 'Start a streak today — every run counts.'
+  if (streak === 1) return 'One day down. Show up again tomorrow.'
+  if (streak < 5) return `${streak} days running. You're building something real.`
+  if (streak < 7) return `${streak} days in a row. A week streak is within reach.`
+  if (streak === 7) return '7-day streak! Week Warrior badge unlocked.'
+  if (streak < 14) return `${streak} days straight. Consistency beats intensity.`
+  return `${streak}-day streak. You're a different kind of runner now.`
+}
+
+// ── Dashboard (authenticated) ─────────────────────────────────────
 
 export default async function HomePage({
   searchParams,
@@ -47,7 +133,8 @@ export default async function HomePage({
   const params = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+
+  if (!user) return <LandingPage />
 
   const now = new Date()
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
@@ -58,6 +145,7 @@ export default async function HomePage({
   const [
     { data: profile },
     { data: runs },
+    { data: allRuns },
     { data: badges },
     { data: allChallenges },
     { data: joined },
@@ -65,17 +153,19 @@ export default async function HomePage({
     { count: totalMembers },
   ] = await Promise.all([
     supabase.from('users').select('*').eq('id', user.id).single(),
-    supabase.from('runs').select('*').eq('user_id', user.id).gte('date', monthStart),
+    supabase.from('runs').select('*').eq('user_id', user.id).gte('date', monthStart).order('date', { ascending: false }),
+    supabase.from('runs').select('date, type').eq('user_id', user.id).order('date', { ascending: false }).limit(30),
     supabase.from('badges').select('*').eq('user_id', user.id).order('earned_date', { ascending: false }).limit(5),
     supabase.from('challenges').select('*'),
     supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
-    supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').single(),
+    supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').maybeSingle(),
     supabase.from('users').select('*', { count: 'exact', head: true }),
   ])
 
   const progressMap = new Map((joined ?? []).map((j: { challenge_id: string; progress: number }) => [j.challenge_id, Number(j.progress)]))
   const joinedIds = new Set((joined ?? []).map((j: { challenge_id: string }) => j.challenge_id))
   const activeChallenges = (allChallenges ?? []).filter((c: { id: string }) => joinedIds.has(c.id)).slice(0, 2)
+  const availableChallenges = (allChallenges ?? []).filter((c: { id: string }) => !joinedIds.has(c.id))
 
   const totalDistance = (runs ?? []).reduce((sum: number, r: { distance: number }) => sum + Number(r.distance), 0)
   const totalRuns = runs?.length ?? 0
@@ -83,13 +173,18 @@ export default async function HomePage({
   const averagePace = runs?.length
     ? Number(((runs ?? []).reduce((sum: number, r: { pace: number }) => sum + Number(r.pace), 0) / runs.length).toFixed(2))
     : 0
-  const streakDays = computeStreak((runs ?? []).map((r: { date: string }) => r.date))
+
+  const recentDates = (allRuns ?? []).map((r: { date: string }) => r.date)
+  const streakDays = computeStreak(recentDates)
   const progressPercent = (totalDistance / TARGET_DISTANCE) * 100
   const firstName = profile?.name?.split(' ')[0] ?? 'Runner'
   const avatarUrl = profile?.avatar_url ?? null
   const rankChange = leaderboardEntry?.change ?? 0
   const stravaJustConnected = params.strava === 'connected'
   const stravaImported = parseInt(params.imported ?? '0')
+
+  const lastRunDate = (allRuns ?? [])[0]?.date ?? null
+  const lastRunType = (allRuns ?? [])[0]?.type ?? null
 
   return (
     <div className="min-h-screen bg-paper pb-[110px] pl-anim">
@@ -106,7 +201,7 @@ export default async function HomePage({
         </div>
       </div>
 
-      {/* Greeting — tap to open profile */}
+      {/* Greeting */}
       <Link href="/profile" className="block px-[22px] pt-[14px] pb-2">
         <div className="pl-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
         <div className="flex items-center gap-4 mt-2">
@@ -123,7 +218,9 @@ export default async function HomePage({
             <div>
               <p className="text-sm font-semibold text-pine">Strava connected!</p>
               <p className="mono text-[10.5px] text-ink-3">
-                {stravaImported > 0 ? `${stravaImported} run${stravaImported !== 1 ? 's' : ''} imported from the last 30 days` : 'No runs found in the last 30 days yet'}
+                {stravaImported > 0
+                  ? `${stravaImported} run${stravaImported !== 1 ? 's' : ''} imported from the last 30 days`
+                  : 'No runs found in the last 30 days yet'}
               </p>
             </div>
           </div>
@@ -157,7 +254,7 @@ export default async function HomePage({
               <div className="flex justify-between mt-[9px]">
                 <span className="mono text-[11px] text-gold">{Math.round(progressPercent)}% there</span>
                 <span className="text-[12.5px] text-paper/70">
-                  {(TARGET_DISTANCE - totalDistance).toFixed(1)} km to go &mdash; hold the line.
+                  {(TARGET_DISTANCE - totalDistance).toFixed(1)} km to go — hold the line.
                 </span>
               </div>
             </div>
@@ -165,13 +262,26 @@ export default async function HomePage({
         </div>
       </div>
 
-      {/* Personal Stats Row */}
+      {/* Streak + next run suggestion */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
+        <div className="pl-card p-4 flex items-start gap-3">
+          <Flame size={20} className="text-race flex-shrink-0 mt-[2px]" />
+          <div>
+            <div className="font-semibold text-[14px] mb-1">{streakMessage(streakDays)}</div>
+            <p className="text-[12.5px] text-ink-3 leading-[1.4]">
+              {suggestNextRun(lastRunDate, lastRunType)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Personal Stats Row */}
+      <div className="px-[22px] pt-[4px] pb-[6px]">
         <Link href="/runs" className="pl-card py-[18px] px-2 flex block">
           {[
-            { n: totalRuns, l: "Runs", c: "text-race" },
-            { n: `${longestRun.toFixed(1)}`, l: "Longest km", c: "text-pine" },
-            { n: formatPace(averagePace), l: "Avg /km", c: "text-ink" },
+            { n: totalRuns || '0', l: 'Runs', c: 'text-race' },
+            { n: `${longestRun.toFixed(1)}`, l: 'Longest km', c: 'text-pine' },
+            { n: averagePace ? formatPace(averagePace) : '--', l: 'Avg /km', c: 'text-ink' },
           ].map((x, i) => (
             <div key={i} className={`flex-1 text-center ${i > 0 ? 'border-l border-line' : ''}`}>
               <div className={`pl-statn text-[34px] ${x.c}`}>{x.n}</div>
@@ -182,7 +292,7 @@ export default async function HomePage({
       </div>
 
       {/* Leaderboard Position */}
-      <div className="px-[22px] pt-[10px] pb-[6px]">
+      <div className="px-[22px] pt-[4px] pb-[6px]">
         <Link
           href="/leaderboard"
           className="pl-card w-full p-4 flex items-center gap-[14px] cursor-pointer text-left block"
@@ -190,10 +300,10 @@ export default async function HomePage({
           <div
             className="medal medal-sm"
             style={{
-              background: "radial-gradient(circle at 50% 36%, rgba(255,255,255,.2), transparent 58%), conic-gradient(from 0deg,#E8A93C,#fff3d6,#E8A93C)",
+              background: 'radial-gradient(circle at 50% 36%, rgba(255,255,255,.2), transparent 58%), conic-gradient(from 0deg,#E8A93C,#fff3d6,#E8A93C)',
               // @ts-expect-error CSS custom properties
-              "--m-core": "#1E3A30",
-              "--m-glyph": "#E8A93C",
+              '--m-core': '#1E3A30',
+              '--m-glyph': '#E8A93C',
             }}
           >
             <span className="medal-glyph">
@@ -242,13 +352,32 @@ export default async function HomePage({
                   <div className="flex justify-between mb-2">
                     <span className="mono text-xs text-ink-3">{c.participants} runners</span>
                     <span className="mono text-xs text-ink-2 font-semibold">
-                      {progressMap.get(c.id) ?? 0} / {c.target_value}{c.target_metric === "distance" ? "km" : ""}
+                      {progressMap.get(c.id) ?? 0} / {c.target_value}{c.target_metric === 'distance' ? 'km' : ''}
                     </span>
                   </div>
                   <PacelineProgress value={p} height={10} />
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* No quests nudge */}
+      {activeChallenges.length === 0 && availableChallenges.length > 0 && (
+        <div className="px-[22px] mt-[18px]">
+          <div className="pl-card p-4 flex items-center gap-3">
+            <Users size={20} className="text-ink-3 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="font-semibold text-[14px]">Join a quest</div>
+              <p className="text-[12px] text-ink-3 mt-[2px]">Running with others makes it stick.</p>
+            </div>
+            <Link
+              href="/challenges"
+              className="mono text-[11px] tracking-[0.06em] font-semibold text-race flex items-center gap-1 flex-shrink-0"
+            >
+              Browse <ChevronRight size={12} />
+            </Link>
           </div>
         </div>
       )}
@@ -276,12 +405,27 @@ export default async function HomePage({
         </div>
       )}
 
+      {/* No runs empty state */}
+      {totalRuns === 0 && (
+        <div className="px-[22px] mt-[18px]">
+          <div className="pl-card p-6 text-center">
+            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">No runs this month</div>
+            <p className="text-[13px] text-ink-2 mb-4">Your first run is always the hardest. Log it and we&apos;ll take care of the rest.</p>
+            <Link href="/log-run" className="pl-btn pl-btn-primary">
+              Log your first run
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Log CTA */}
-      <div className="px-[22px] pt-3">
-        <Link href="/log-run" className="pl-btn pl-btn-primary">
-          + Log today&apos;s run
-        </Link>
-      </div>
+      {totalRuns > 0 && (
+        <div className="px-[22px] pt-3">
+          <Link href="/log-run" className="pl-btn pl-btn-primary">
+            + Log today&apos;s run
+          </Link>
+        </div>
+      )}
 
       <PacelineNav active="/" />
     </div>

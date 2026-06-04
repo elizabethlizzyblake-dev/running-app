@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import Link from "next/link"
 import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
+import { formatPace, formatDuration, formatDate, formatMonth } from "@/lib/formatting"
+import { updateChallengeProgress } from "@/lib/progress"
 
 type Run = {
   id: string
@@ -30,34 +32,6 @@ const TYPE_OPTIONS = [
 
 const TYPE_LABELS: Record<string, string> = Object.fromEntries(TYPE_OPTIONS.map(o => [o.value, o.label]))
 
-function formatPace(pace: number) {
-  if (!pace) return '--'
-  const m = Math.floor(pace)
-  const s = Math.round((pace - m) * 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function formatDuration(minutes: number) {
-  if (!minutes) return ''
-  if (minutes >= 60) {
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    return m > 0 ? `${h}h ${m}m` : `${h}h`
-  }
-  return `${minutes}m`
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short',
-  })
-}
-
-function formatMonth(monthStr: string) {
-  const [year, month] = monthStr.split('-')
-  return new Date(parseInt(year), parseInt(month) - 1, 1)
-    .toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-}
 
 // ── Edit modal ──────────────────────────────────────────────────
 
@@ -249,12 +223,14 @@ export default function RunsPage() {
     await supabase.from('runs').update(updates).eq('id', id).eq('user_id', userId)
     setRuns(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
     setEditRun(null)
+    if (userId) await updateChallengeProgress(supabase, userId)
   }
 
   const handleDelete = async (id: string) => {
     await supabase.from('runs').delete().eq('id', id).eq('user_id', userId)
     setRuns(prev => prev.filter(r => r.id !== id))
     setEditRun(null)
+    if (userId) await updateChallengeProgress(supabase, userId)
   }
 
   if (loading) return null

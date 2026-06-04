@@ -12,57 +12,57 @@ import {
   Check,
 } from "@/components/paceline-ui"
 import { runTypes } from "@/lib/mock-data"
+import { formatPace, calcPace } from "@/lib/formatting"
+import { checkAndAwardBadges } from "@/lib/achievements"
+import { updateLeaderboard, updateChallengeProgress } from "@/lib/progress"
 import Link from "next/link"
 
-type Run = { distance: number; date: string }
+type FormData = {
+  date: string
+  distance: string
+  minutes: string
+  seconds: string
+  type: string
+  notes: string
+}
 
-const AUTO_BADGES = [
-  { name: 'First Steps', description: 'Complete your first run with the club', category: 'distance', icon: 'Footprints', requirement: 'Log 1 run',
-    check: (runs: Run[]) => runs.length >= 1 },
-  { name: '10K Club', description: 'Run a total of 10km', category: 'distance', icon: 'Route', requirement: '10km total',
-    check: (runs: Run[]) => runs.reduce((s, r) => s + Number(r.distance), 0) >= 10 },
-  { name: '50K Explorer', description: 'Run a total of 50km', category: 'distance', icon: 'Mountain', requirement: '50km total',
-    check: (runs: Run[]) => runs.reduce((s, r) => s + Number(r.distance), 0) >= 50 },
-  { name: '100K Legend', description: 'Run a total of 100km', category: 'distance', icon: 'Award', requirement: '100km total',
-    check: (runs: Run[]) => runs.reduce((s, r) => s + Number(r.distance), 0) >= 100 },
-  { name: 'Marathon Master', description: 'Run 42.2km in a single run', category: 'distance', icon: 'Crown', requirement: '42.2km single run',
-    check: (runs: Run[]) => runs.some(r => Number(r.distance) >= 42.2) },
-  { name: 'Week Warrior', description: 'Run every day for a week', category: 'consistency', icon: 'Flame', requirement: '7-day streak',
-    check: (runs: Run[]) => {
-      const dates = new Set(runs.map(r => r.date))
-      const today = new Date()
-      let streak = 0
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(today); d.setDate(today.getDate() - i)
-        if (dates.has(d.toISOString().split('T')[0])) streak++; else break
-      }
-      return streak >= 7
-    }},
-  { name: 'Month Streak', description: 'Run every day for a month', category: 'consistency', icon: 'Flame', requirement: '30-day streak',
-    check: (runs: Run[]) => {
-      const dates = new Set(runs.map(r => r.date))
-      const today = new Date()
-      let streak = 0
-      for (let i = 0; i < 60; i++) {
-        const d = new Date(today); d.setDate(today.getDate() - i)
-        if (dates.has(d.toISOString().split('T')[0])) streak++; else break
-      }
-      return streak >= 30
-    }},
-]
+function validateForm(form: FormData): string | null {
+  if (!form.date) return 'Please enter a date.'
+  if (new Date(form.date) > new Date()) return 'Date cannot be in the future.'
+  const distance = parseFloat(form.distance)
+  if (!form.distance || isNaN(distance) || distance <= 0)
+    return 'Distance must be greater than 0 km.'
+  const minutes = parseInt(form.minutes) || 0
+  const seconds = parseInt(form.seconds) || 0
+  if (minutes <= 0 && seconds <= 0)
+    return 'Duration must be greater than 0.'
+  if (seconds < 0 || seconds > 59)
+    return 'Seconds must be between 0 and 59.'
+  return null
+}
+
+function previewPace(form: FormData): string {
+  const distance = parseFloat(form.distance)
+  const totalMin = (parseInt(form.minutes) || 0) + (parseInt(form.seconds) || 0) / 60
+  const pace = calcPace(distance, totalMin)
+  return pace > 0 ? `${formatPace(pace)} /km` : '-:-- /km'
+}
 
 export default function LogRunPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState<string>('Runner')
   const [submitted, setSubmitted] = useState(false)
   const [earnedBadges, setEarnedBadges] = useState<string[]>([])
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
-    distance: "",
-    minutes: "",
-    seconds: "",
-    type: "easy",
-    notes: "",
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
+    date: new Date().toISOString().split('T')[0],
+    distance: '',
+    minutes: '',
+    seconds: '',
+    type: 'easy',
+    notes: '',
   })
 
   useEffect(() => {
@@ -74,134 +74,78 @@ export default function LogRunPage() {
     })
   }, [])
 
-  const set = (k: string, v: string) => setFormData(p => ({ ...p, [k]: v }))
-
-  const calculatePace = () => {
-    const distance = parseFloat(formData.distance)
-    const totalMinutes = (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
-    if (distance > 0 && totalMinutes > 0) {
-      const pace = totalMinutes / distance
-      const paceMin = Math.floor(pace)
-      const paceSec = Math.round((pace - paceMin) * 60)
-      return `${paceMin}:${paceSec.toString().padStart(2, "0")}`
-    }
-    return "-:--"
-  }
-
-  const upsertLeaderboard = async (uid: string, name: string, category: string, value: number) => {
-    const { data: existing } = await supabase
-      .from('leaderboard_entries').select('id')
-      .eq('user_id', uid).eq('category', category).single()
-
-    if (existing) {
-      await supabase.from('leaderboard_entries').update({ value }).eq('id', existing.id)
-    } else {
-      const { count } = await supabase
-        .from('leaderboard_entries').select('*', { count: 'exact', head: true })
-        .eq('category', category)
-      await supabase.from('leaderboard_entries').insert({
-        user_id: uid, user_name: name, category, rank: (count ?? 0) + 1, value, change: 0,
-      })
-    }
-  }
-
-  const rerankCategory = async (category: string) => {
-    const { data: entries } = await supabase
-      .from('leaderboard_entries')
-      .select('id, rank, value')
-      .eq('category', category)
-      .order('value', { ascending: false })
-
-    if (!entries) return
-
-    await Promise.all(entries.map((entry, index) => {
-      const newRank = index + 1
-      const change = entry.rank - newRank
-      return supabase
-        .from('leaderboard_entries')
-        .update({ rank: newRank, change })
-        .eq('id', entry.id)
-    }))
-  }
+  const set = (k: keyof FormData, v: string) =>
+    setFormData((p) => ({ ...p, [k]: v }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!userId) return
 
-    const distance = parseFloat(formData.distance)
-    const duration = (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
-    const pace = duration / distance
+    const validationMsg = validateForm(formData)
+    if (validationMsg) {
+      setValidationError(validationMsg)
+      return
+    }
+    setValidationError(null)
+    setSubmitError(null)
+    setSubmitting(true)
 
-    await supabase.from('runs').insert({
+    const distance = parseFloat(formData.distance)
+    const durationMin =
+      (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
+    const pace = calcPace(distance, durationMin)
+
+    const { error: insertError } = await supabase.from('runs').insert({
       user_id: userId,
       date: formData.date,
       distance,
-      duration: Math.round(duration),
-      pace: Math.round(pace * 100) / 100,
+      duration: Math.round(durationMin),
+      pace,
       type: formData.type,
       notes: formData.notes || null,
     })
 
+    if (insertError) {
+      setSubmitError(`Couldn't save your run — please try again. (${insertError.message})`)
+      setSubmitting(false)
+      return
+    }
+
     const now = new Date()
     const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+
     const { data: allRuns } = await supabase
-      .from('runs').select('distance, date').eq('user_id', userId).order('date')
-
-    const monthRuns = (allRuns ?? []).filter(r => r.date >= monthStart)
-    if (monthRuns) {
-      const totalDistance = monthRuns.reduce((sum, r) => sum + Number(r.distance), 0)
-      const totalRuns = monthRuns.length
-      const longestRun = monthRuns.reduce((max, r) => Math.max(max, Number(r.distance)), 0)
-      await Promise.all([
-        upsertLeaderboard(userId, userName, 'distance', Math.round(totalDistance * 10) / 10),
-        upsertLeaderboard(userId, userName, 'runs', totalRuns),
-        upsertLeaderboard(userId, userName, 'longest', Math.round(longestRun * 10) / 10),
-      ])
-      await Promise.all([
-        rerankCategory('distance'),
-        rerankCategory('runs'),
-        rerankCategory('longest'),
-      ])
-    }
-
-    const { data: joinedChallenges } = await supabase
-      .from('challenge_participants')
-      .select('challenge_id, challenges(id, start_date, end_date, target_metric)')
+      .from('runs')
+      .select('distance, date')
       .eq('user_id', userId)
+      .order('date')
 
-    if (joinedChallenges) {
-      await Promise.all(joinedChallenges.map(async (row: {
-        challenge_id: string
-        challenges: { id: string; start_date: string; end_date: string; target_metric: string } | null
-      }) => {
-        const challenge = row.challenges
-        if (!challenge) return
-        const { data: challengeRuns } = await supabase
-          .from('runs').select('distance').eq('user_id', userId)
-          .gte('date', challenge.start_date).lte('date', challenge.end_date)
-        if (!challengeRuns) return
-        const progress = challenge.target_metric === 'distance'
-          ? Math.round(challengeRuns.reduce((sum, r) => sum + Number(r.distance), 0) * 10) / 10
-          : challengeRuns.length
-        await supabase.from('challenge_participants')
-          .update({ progress })
-          .eq('user_id', userId).eq('challenge_id', challenge.id)
-      }))
-    }
+    const monthRuns = (allRuns ?? []).filter((r: { date: string }) => r.date >= monthStart)
 
-    const { data: existingBadges } = await supabase
-      .from('badges').select('name').eq('user_id', userId)
-    const earned = new Set(existingBadges?.map((b: { name: string }) => b.name) ?? [])
-    const today = new Date().toISOString().split('T')[0]
-    const newBadges = AUTO_BADGES.filter(b => !earned.has(b.name) && b.check(allRuns ?? []))
-    if (newBadges.length > 0) {
-      await supabase.from('badges').insert(
-        newBadges.map(b => ({ user_id: userId, name: b.name, description: b.description, category: b.category, icon: b.icon, requirement: b.requirement, earned_date: today }))
-      )
-      setEarnedBadges(newBadges.map(b => b.name))
-    }
+    await Promise.all([
+      updateLeaderboard(supabase, userId, userName, monthRuns),
+      updateChallengeProgress(supabase, userId),
+    ])
 
+    const newBadges = await checkAndAwardBadges(supabase, userId, allRuns ?? [])
+    setEarnedBadges(newBadges)
+    setSubmitting(false)
     setSubmitted(true)
+  }
+
+  const resetForm = () => {
+    setSubmitted(false)
+    setEarnedBadges([])
+    setValidationError(null)
+    setSubmitError(null)
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      distance: '',
+      minutes: '',
+      seconds: '',
+      type: 'easy',
+      notes: '',
+    })
   }
 
   if (submitted) {
@@ -213,13 +157,20 @@ export default function LogRunPage() {
           </div>
           <div className="anton text-[40px] uppercase leading-[0.95]">Logged!</div>
           <p className="text-ink-2 text-[15px] mt-3 max-w-[240px] mx-auto">
-            {formData.distance ? `${formData.distance}km at ${calculatePace()}/km` : "Nice work"} — the club just moved forward.
+            {formData.distance
+              ? `${formData.distance}km at ${previewPace(formData)}`
+              : 'Nice work'}{' '}
+            — the club just moved forward.
           </p>
           {earnedBadges.length > 0 && (
             <div className="mt-4 pt-4 border-t border-line">
-              <p className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">New patch{earnedBadges.length > 1 ? 'es' : ''} earned!</p>
-              {earnedBadges.map(name => (
-                <p key={name} className="text-sm text-race font-semibold">{name}</p>
+              <p className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">
+                New patch{earnedBadges.length > 1 ? 'es' : ''} earned!
+              </p>
+              {earnedBadges.map((name) => (
+                <p key={name} className="text-sm text-race font-semibold">
+                  {name}
+                </p>
               ))}
             </div>
           )}
@@ -227,14 +178,7 @@ export default function LogRunPage() {
             <Link href="/" className="pl-btn pl-btn-primary">
               Back to home
             </Link>
-            <button
-              className="pl-btn pl-btn-ghost"
-              onClick={() => {
-                setSubmitted(false)
-                setEarnedBadges([])
-                setFormData({ date: new Date().toISOString().split("T")[0], distance: "", minutes: "", seconds: "", type: "easy", notes: "" })
-              }}
-            >
+            <button className="pl-btn pl-btn-ghost" onClick={resetForm}>
               Log another
             </button>
           </div>
@@ -261,20 +205,22 @@ export default function LogRunPage() {
         <h1 className="pl-heading">Log a Run</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-[22px] pt-2 flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="px-[22px] pt-2 flex flex-col gap-3" noValidate>
         {/* Date */}
         <div className="pl-field">
-          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">Date</div>
+          <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px]">
+            Date
+          </div>
           <input
             type="date"
             value={formData.date}
-            onChange={e => set("date", e.target.value)}
+            onChange={(e) => set('date', e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
             className="pl-input"
-            required
           />
         </div>
 
-        {/* Distance Hero Field */}
+        {/* Distance */}
         <div className="pl-field text-center py-5 px-4">
           <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center justify-center gap-2">
             <Route size={14} /> Distance
@@ -283,18 +229,17 @@ export default function LogRunPage() {
             <input
               type="number"
               step="0.1"
-              min="0"
+              min="0.1"
               placeholder="0.0"
               value={formData.distance}
-              onChange={e => set("distance", e.target.value)}
+              onChange={(e) => set('distance', e.target.value)}
               className="w-[130px] bg-transparent border-none text-center anton text-[44px] outline-none placeholder:text-ink-3/50"
-              required
             />
             <span className="mono text-lg text-ink-3">km</span>
           </div>
         </div>
 
-        {/* Duration + Pace */}
+        {/* Duration + live pace */}
         <div className="pl-field">
           <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
             <Clock size={14} /> Duration
@@ -306,9 +251,8 @@ export default function LogRunPage() {
                 min="0"
                 placeholder="00"
                 value={formData.minutes}
-                onChange={e => set("minutes", e.target.value)}
+                onChange={(e) => set('minutes', e.target.value)}
                 className="pl-input text-center mono text-[22px] font-semibold"
-                required
               />
               <p className="text-xs text-ink-3 text-center mt-1">Minutes</p>
             </div>
@@ -320,7 +264,7 @@ export default function LogRunPage() {
                 max="59"
                 placeholder="00"
                 value={formData.seconds}
-                onChange={e => set("seconds", e.target.value)}
+                onChange={(e) => set('seconds', e.target.value)}
                 className="pl-input text-center mono text-[22px] font-semibold"
               />
               <p className="text-xs text-ink-3 text-center mt-1">Seconds</p>
@@ -328,21 +272,21 @@ export default function LogRunPage() {
           </div>
           <div className="flex justify-between mt-3 pt-3 border-t border-line">
             <span className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3">Pace</span>
-            <span className="mono text-base font-bold text-race">{calculatePace()} /km</span>
+            <span className="mono text-base font-bold text-race">{previewPace(formData)}</span>
           </div>
         </div>
 
-        {/* Run Type */}
+        {/* Run type */}
         <div className="pl-field">
           <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-[11px] flex items-center gap-2">
             <Sparkles size={14} /> Type of run
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {runTypes.map(t => (
+            {runTypes.map((t) => (
               <button
                 key={t.value}
                 type="button"
-                onClick={() => set("type", t.value)}
+                onClick={() => set('type', t.value)}
                 className={`py-[11px] px-2 rounded-xl border-[1.5px] text-center transition-all ${
                   formData.type === t.value
                     ? 'border-race bg-race/[0.08]'
@@ -366,17 +310,26 @@ export default function LogRunPage() {
             rows={3}
             placeholder="How did it feel? Any highlights?"
             value={formData.notes}
-            onChange={e => set("notes", e.target.value)}
+            onChange={(e) => set('notes', e.target.value)}
           />
         </div>
 
-        {/* Submit */}
+        {/* Validation / submit errors */}
+        {(validationError || submitError) && (
+          <div className="px-4 py-3 rounded-[12px] bg-race/10 border border-race/20">
+            <p className="text-[13px] text-race font-semibold">
+              {validationError ?? submitError}
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
-          disabled={!userId}
+          disabled={!userId || submitting}
           className="pl-btn pl-btn-primary mt-1 disabled:opacity-50"
         >
-          <Check size={18} strokeWidth={2.6} /> Save run
+          <Check size={18} strokeWidth={2.6} />
+          {submitting ? 'Saving…' : 'Save run'}
         </button>
       </form>
     </div>
