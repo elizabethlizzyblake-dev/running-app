@@ -179,18 +179,30 @@ export default function ProfilePage() {
         )}
 
         {/* Persona badge */}
-        {profile.persona && PERSONA_CONFIG[profile.persona] && (() => {
+        {profile.persona && PERSONA_CONFIG[profile.persona] ? (() => {
           const cfg = PERSONA_CONFIG[profile.persona!]
           return (
-            <div className="mt-3 px-4 py-[10px] rounded-[14px] border border-line bg-card flex items-center gap-3">
-              <span className="text-[22px]">{cfg.emoji}</span>
-              <div className="text-left">
-                <div className="font-bold text-[13px] text-ink">{cfg.tagline}</div>
-                <div className="text-[11px] text-ink-3">{cfg.description}</div>
+            <div className="mt-3 flex flex-col items-center gap-2">
+              <div className="px-4 py-[10px] rounded-[14px] border border-line bg-card flex items-center gap-3">
+                <span className="text-[22px]">{cfg.emoji}</span>
+                <div className="text-left">
+                  <div className="font-bold text-[13px] text-ink">{cfg.tagline}</div>
+                  <div className="text-[11px] text-ink-3">{cfg.description}</div>
+                </div>
               </div>
+              <Link href="/onboarding" className="mono text-[10.5px] text-race tracking-[0.05em]">
+                Update preferences →
+              </Link>
             </div>
           )
-        })()}
+        })() : (
+          <div className="mt-3 flex flex-col items-center gap-2">
+            <p className="mono text-[11px] text-ink-3">No running profile yet</p>
+            <Link href="/onboarding" className="mono text-[10.5px] text-race tracking-[0.05em]">
+              Take the questionnaire →
+            </Link>
+          </div>
+        )}
 
         {/* Preset avatars */}
         <div className="mt-4 px-[22px] w-full">
