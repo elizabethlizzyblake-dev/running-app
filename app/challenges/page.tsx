@@ -13,7 +13,7 @@ import {
 } from "@/components/paceline-ui"
 
 import Link from "next/link"
-import { Map } from "lucide-react"
+import { Map as MapIcon } from "lucide-react"
 
 type Challenge = {
   id: string
@@ -77,7 +77,7 @@ function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => vo
               href={`/route-challenge/${c.id}`}
               className="mt-3 w-full flex items-center justify-center gap-2 py-[11px] rounded-[12px] bg-pine text-paper font-semibold text-[13.5px]"
             >
-              <Map size={15} /> View route map
+              <MapIcon size={15} /> View route map
             </Link>
           )}
         </div>
@@ -91,7 +91,7 @@ function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => vo
               href={`/route-challenge/${c.id}`}
               className="w-full flex items-center justify-center gap-2 py-[11px] rounded-[12px] border border-line text-ink-2 font-semibold text-[13.5px]"
             >
-              <Map size={15} /> Preview route
+              <MapIcon size={15} /> Preview route
             </Link>
           )}
         </div>
