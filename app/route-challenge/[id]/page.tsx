@@ -1,61 +1,67 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { supabase } from "@/lib/supabase"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, MapPin, Flag, Trophy } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { PacelineNav, PacelineProgress, SettingsButton } from "@/components/paceline-ui"
 import { AvatarCircle, PRESETS } from "@/components/avatar-circle"
 
-// ── Route geometry ─────────────────────────────────────────────
-// SVG viewBox 0 0 360 210 — positions derived from the Kent coast shape
+// ── Smooth path generation ──────────────────────────────────────
+// Catmull-Rom spline converted to cubic bezier segments
 
-const ROUTE = [
-  { name: "Sittingbourne", km: 0,  x: 22,  y: 180, emoji: "🏁" },
-  { name: "Faversham",     km: 13, x: 80,  y: 148, emoji: "🌿" },
-  { name: "Whitstable",    km: 26, x: 138, y: 126, emoji: "🦪" },
-  { name: "Herne Bay",     km: 37, x: 188, y: 144, emoji: "🌊" },
-  { name: "Margate",       km: 62, x: 268, y: 104, emoji: "🎡" },
-  { name: "Broadstairs",   km: 68, x: 308, y: 138, emoji: "📖" },
-  { name: "Ramsgate",      km: 74, x: 338, y: 180, emoji: "🏅" },
-]
+function buildSmoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length < 2) return ""
+  if (pts.length === 2) return `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y}`
+  const n = pts.length
+  let d = `M ${pts[0].x},${pts[0].y}`
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[Math.min(n - 1, i + 2)]
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x},${p2.y}`
+  }
+  return d
+}
 
-const TOTAL_KM = 74
+// ── Helpers ─────────────────────────────────────────────────────
 
-// Smooth bezier path through the checkpoint positions
-const BEZIER_PATH =
-  "M 22,180 C 44,165 60,138 80,148 C 104,160 118,126 138,126 " +
-  "C 158,126 168,148 188,144 C 218,138 248,104 268,104 " +
-  "C 286,104 296,138 308,138 C 318,138 328,162 338,180"
+type Checkpoint = { name: string; km: number; x: number; y: number; emoji: string }
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
 
-function posAtKm(km: number) {
-  const clamped = Math.min(Math.max(0, km), TOTAL_KM)
-  for (let i = 0; i < ROUTE.length - 1; i++) {
-    const from = ROUTE[i]; const to = ROUTE[i + 1]
+function posAtKm(km: number, checkpoints: Checkpoint[], totalKm: number) {
+  if (!checkpoints.length) return { x: 0, y: 0 }
+  const clamped = Math.min(Math.max(0, km), totalKm)
+  for (let i = 0; i < checkpoints.length - 1; i++) {
+    const from = checkpoints[i]; const to = checkpoints[i + 1]
     if (clamped >= from.km && clamped <= to.km) {
       const t = (clamped - from.km) / (to.km - from.km)
       return { x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) }
     }
   }
-  return { x: ROUTE[ROUTE.length - 1].x, y: ROUTE[ROUTE.length - 1].y }
+  return { x: checkpoints[checkpoints.length - 1].x, y: checkpoints[checkpoints.length - 1].y }
 }
 
-function completedPolyline(km: number) {
-  const reached = ROUTE.filter(r => r.km <= km)
-  const pos = posAtKm(km)
+function completedPolyline(km: number, checkpoints: Checkpoint[], totalKm: number) {
+  const reached = checkpoints.filter(r => r.km <= km)
+  const pos = posAtKm(km, checkpoints, totalKm)
   const pts = [...reached.map(r => `${r.x},${r.y}`), `${pos.x.toFixed(1)},${pos.y.toFixed(1)}`]
   return pts.join(" ")
 }
 
-function currentCheckpoint(km: number) {
-  return [...ROUTE].reverse().find(r => km >= r.km) ?? ROUTE[0]
+function currentCheckpoint(km: number, checkpoints: Checkpoint[]) {
+  return [...checkpoints].reverse().find(r => km >= r.km) ?? checkpoints[0]
 }
 
-function nextCheckpoint(km: number) {
-  return ROUTE.find(r => km < r.km) ?? null
+function nextCheckpoint(km: number, checkpoints: Checkpoint[]) {
+  return checkpoints.find(r => km < r.km) ?? null
 }
 
 function presetBg(url: string | null) {
@@ -73,19 +79,25 @@ type Participant = {
   isMe: boolean
 }
 
+type RouteInfo = { totalKm: number; endLocation: string }
+type ChallengeInfo = { title: string; description: string; participants: number; badgeReward: string }
+
 // ── Component ───────────────────────────────────────────────────
 
 export default function RouteChallengeePage() {
   const { id } = useParams<{ id: string }>()
-  const router  = useRouter()
+  const router = useRouter()
 
-  const [loading,      setLoading]      = useState(true)
-  const [joining,      setJoining]      = useState(false)
-  const [userId,       setUserId]       = useState("")
-  const [challenge,    setChallenge]    = useState<{ title: string; description: string; participants: number; badgeReward: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [joining, setJoining] = useState(false)
+  const [userId, setUserId] = useState("")
+  const [myProfile, setMyProfile] = useState<{ name: string; avatarUrl: string | null } | null>(null)
+  const [challenge, setChallenge] = useState<ChallengeInfo | null>(null)
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
+  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [joined,       setJoined]       = useState(false)
-  const [myProgress,   setMyProgress]   = useState(0)
+  const [joined, setJoined] = useState(false)
+  const [myProgress, setMyProgress] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -96,14 +108,43 @@ export default function RouteChallengeePage() {
       const [
         { data: ch },
         { data: parts },
+        { data: prof },
       ] = await Promise.all([
         supabase.from("challenges").select("title, description, participants, badge_reward").eq("id", id).single(),
         supabase.from("challenge_participants").select("user_id, progress").eq("challenge_id", id).order("progress", { ascending: false }),
+        supabase.from("users").select("name, avatar_url").eq("id", user.id).single(),
       ])
+
+      if (prof) setMyProfile({ name: prof.name, avatarUrl: prof.avatar_url })
 
       if (!ch) { router.replace("/challenges"); return }
       setChallenge({ title: ch.title, description: ch.description, participants: ch.participants, badgeReward: ch.badge_reward })
 
+      // Fetch route geometry from DB
+      const { data: rc } = await supabase
+        .from("route_challenges")
+        .select("id, total_distance_km, end_location")
+        .eq("challenge_id", id)
+        .single()
+
+      if (!rc) { router.replace("/challenges"); return }
+      setRouteInfo({ totalKm: rc.total_distance_km, endLocation: rc.end_location })
+
+      const { data: cps } = await supabase
+        .from("route_checkpoints")
+        .select("name, distance_km, emoji, svg_x, svg_y")
+        .eq("route_challenge_id", rc.id)
+        .order("order_index", { ascending: true })
+
+      setCheckpoints((cps ?? []).map((cp: { name: string; distance_km: number; emoji: string; svg_x: number; svg_y: number }) => ({
+        name: cp.name,
+        km: cp.distance_km,
+        x: cp.svg_x,
+        y: cp.svg_y,
+        emoji: cp.emoji,
+      })))
+
+      // Fetch participant profiles
       const partIds = (parts ?? []).map((p: { user_id: string }) => p.user_id)
       const { data: profiles } = partIds.length
         ? await supabase.from("users").select("id, name, avatar_url").in("id", partIds)
@@ -112,11 +153,11 @@ export default function RouteChallengeePage() {
       const profileMap = new Map((profiles ?? []).map((p: { id: string; name: string; avatar_url: string }) => [p.id, p]))
 
       const mapped: Participant[] = (parts ?? []).map((p: { user_id: string; progress: number }) => ({
-        userId:    p.user_id,
-        name:      profileMap.get(p.user_id)?.name ?? "Runner",
+        userId: p.user_id,
+        name: profileMap.get(p.user_id)?.name ?? "Runner",
         avatarUrl: profileMap.get(p.user_id)?.avatar_url ?? null,
-        progress:  Number(p.progress),
-        isMe:      p.user_id === user.id,
+        progress: Number(p.progress),
+        isMe: p.user_id === user.id,
       }))
 
       setParticipants(mapped)
@@ -127,25 +168,38 @@ export default function RouteChallengeePage() {
     load()
   }, [id, router])
 
+  const bezierPath = useMemo(
+    () => buildSmoothPath(checkpoints.map(cp => ({ x: cp.x, y: cp.y }))),
+    [checkpoints]
+  )
+
   const handleJoin = async () => {
-    if (!userId || joining) return
+    if (!userId || joining || joined) return
     setJoining(true)
-    await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id })
-    await supabase.from("challenges").update({ participants: (challenge?.participants ?? 0) + 1 }).eq("id", id)
+    await supabase.from("challenge_participants").upsert(
+      { user_id: userId, challenge_id: id, progress: 0 },
+      { onConflict: "user_id,challenge_id" }
+    )
     setJoined(true)
-    setParticipants(prev => [...prev, { userId, name: "You", avatarUrl: null, progress: 0, isMe: true }])
-    setChallenge(prev => prev ? { ...prev, participants: prev.participants + 1 } : prev)
+    setParticipants(prev => [...prev, {
+      userId,
+      name: myProfile?.name ?? "You",
+      avatarUrl: myProfile?.avatarUrl ?? null,
+      progress: 0,
+      isMe: true,
+    }])
     setJoining(false)
   }
 
-  if (loading) return null
+  if (loading || !routeInfo || !checkpoints.length) return null
 
-  const cur  = currentCheckpoint(myProgress)
-  const next = nextCheckpoint(myProgress)
-  const pct  = (myProgress / TOTAL_KM) * 100
-  const done = myProgress >= TOTAL_KM
+  const { totalKm, endLocation } = routeInfo
+  const cur  = currentCheckpoint(myProgress, checkpoints)
+  const next = nextCheckpoint(myProgress, checkpoints)
+  const pct  = (myProgress / totalKm) * 100
+  const done = myProgress >= totalKm
 
-  // Sort: others first (ascending), me last (always on top in SVG)
+  // Sort: others first (ascending progress), me last (always on top in SVG)
   const svgParticipants = [...participants].sort((a, b) =>
     a.isMe ? 1 : b.isMe ? -1 : a.progress - b.progress
   )
@@ -171,14 +225,13 @@ export default function RouteChallengeePage() {
       <div className="px-[22px] pt-[14px] pb-1">
         <div className="pl-eyebrow">Virtual Route Challenge</div>
         <h1 className="pl-heading mt-1 text-[34px]">{challenge?.title}</h1>
-        <p className="text-sm text-ink-2 mt-1">{challenge?.participants} runners · {TOTAL_KM}km total</p>
+        <p className="text-sm text-ink-2 mt-1">{participants.length} runner{participants.length !== 1 ? "s" : ""} · {totalKm}km total</p>
       </div>
 
       {/* Your progress card */}
       {joined && (
         <div className="mx-[22px] mt-3">
           <div className="pl-pine p-5 relative overflow-hidden">
-            {/* Subtle background motif */}
             <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 300 100">
               <path d="M-10 50 C 60 30, 120 70, 180 50 S 260 20, 310 50" fill="none" stroke="white" strokeWidth="2" />
             </svg>
@@ -187,7 +240,7 @@ export default function RouteChallengeePage() {
               {done ? (
                 <div className="text-center">
                   <div className="text-3xl mb-1">🏅</div>
-                  <div className="font-bold text-paper text-lg">Road to Ramsgate Complete!</div>
+                  <div className="font-bold text-paper text-lg">{challenge?.title} Complete!</div>
                   <p className="mono text-[11px] text-paper/60 mt-1">You earned the {challenge?.badgeReward} badge</p>
                 </div>
               ) : (
@@ -215,7 +268,7 @@ export default function RouteChallengeePage() {
                   <PacelineProgress value={pct} onPine height={10} />
                   <div className="flex justify-between mt-2">
                     <span className="mono text-[11px] text-gold">{myProgress.toFixed(1)}km</span>
-                    <span className="mono text-[11px] text-paper/50">{(TOTAL_KM - myProgress).toFixed(1)}km to Ramsgate</span>
+                    <span className="mono text-[11px] text-paper/50">{(totalKm - myProgress).toFixed(1)}km to {endLocation}</span>
                   </div>
                 </>
               )}
@@ -228,7 +281,6 @@ export default function RouteChallengeePage() {
       <div className="mx-[22px] mt-3">
         <div className="pl-card overflow-hidden p-0">
           <svg viewBox="0 0 360 210" className="w-full" style={{ display: "block" }}>
-            {/* Sea background */}
             <defs>
               <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"   stopColor="#B8DCE8" stopOpacity="0.45" />
@@ -237,11 +289,10 @@ export default function RouteChallengeePage() {
             </defs>
             <rect width="360" height="210" fill="#FAF7F0" />
             <path d="M 0,0 L 360,0 L 360,115 Q 270,85 180,95 Q 90,105 0,90 Z" fill="url(#seaGrad)" />
-            <text x="310" y="30" fontSize="9" fill="#6BA8BC" fontFamily="system-ui" opacity="0.7">North Sea</text>
 
             {/* Full route — dashed gray */}
             <path
-              d={BEZIER_PATH}
+              d={bezierPath}
               fill="none"
               stroke="#C8C0B4"
               strokeWidth="2.5"
@@ -252,7 +303,7 @@ export default function RouteChallengeePage() {
             {/* Completed portion — solid race red */}
             {joined && myProgress > 0 && (
               <polyline
-                points={completedPolyline(myProgress)}
+                points={completedPolyline(myProgress, checkpoints, totalKm)}
                 fill="none"
                 stroke="#E0402A"
                 strokeWidth="3"
@@ -262,17 +313,18 @@ export default function RouteChallengeePage() {
             )}
 
             {/* Checkpoint circles */}
-            {ROUTE.map(cp => {
+            {checkpoints.map(cp => {
               const reached = joined && myProgress >= cp.km
+              const isEndpoint = cp.km === 0 || cp.km === totalKm
               return (
                 <g key={cp.name} transform={`translate(${cp.x},${cp.y})`}>
                   <circle
-                    r={cp.km === 0 || cp.km === TOTAL_KM ? 13 : 11}
+                    r={isEndpoint ? 13 : 11}
                     fill={reached ? "#E8A93C" : "#EAE2D2"}
                     stroke={reached ? "#D4940A" : "#C8C0B4"}
                     strokeWidth="1.5"
                   />
-                  <text textAnchor="middle" dominantBaseline="central" fontSize={cp.km === 0 || cp.km === TOTAL_KM ? "12" : "10"}>
+                  <text textAnchor="middle" dominantBaseline="central" fontSize={isEndpoint ? "12" : "10"}>
                     {cp.emoji}
                   </text>
                 </g>
@@ -281,7 +333,7 @@ export default function RouteChallengeePage() {
 
             {/* Participant avatar dots */}
             {svgParticipants.map(p => {
-              const pos = posAtKm(p.progress)
+              const pos = posAtKm(p.progress, checkpoints, totalKm)
               const bg  = presetBg(p.avatarUrl) ?? (p.isMe ? "#E0402A" : "#2C4E41")
               const r   = p.isMe ? 13 : 11
               return (
@@ -305,7 +357,7 @@ export default function RouteChallengeePage() {
 
           {/* Checkpoint legend */}
           <div className="flex overflow-x-auto gap-0 hide-scrollbar border-t border-line">
-            {ROUTE.map((cp, i) => (
+            {checkpoints.map(cp => (
               <div key={cp.name} className="flex-1 min-w-[46px] flex flex-col items-center py-2 px-1 border-r last:border-r-0 border-line">
                 <span className="text-[14px]">{cp.emoji}</span>
                 <span className="mono text-[8px] text-ink-3 text-center leading-tight mt-[2px]">{cp.name.split(" ")[0]}</span>
@@ -324,7 +376,7 @@ export default function RouteChallengeePage() {
             disabled={joining}
             className="pl-btn pl-btn-primary disabled:opacity-50"
           >
-            {joining ? "Joining…" : "Join the Road to Ramsgate"}
+            {joining ? "Joining…" : `Join ${challenge?.title}`}
           </button>
           <p className="text-xs text-ink-3 text-center mt-2">
             Your logged km count towards the challenge automatically
@@ -338,7 +390,7 @@ export default function RouteChallengeePage() {
           <span className="pl-seclabel">Runners on the route</span>
           <div className="flex flex-col gap-2 mt-3">
             {[...participants].sort((a, b) => b.progress - a.progress).map((p, i) => {
-              const cp = currentCheckpoint(p.progress)
+              const cp = currentCheckpoint(p.progress, checkpoints)
               return (
                 <div key={p.userId} className={`pl-lrow ${p.isMe ? "pl-lrow-me" : ""}`}>
                   <div className="pl-rank">{i + 1}</div>
