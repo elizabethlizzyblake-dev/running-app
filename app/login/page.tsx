@@ -10,6 +10,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [showReset, setShowReset] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,6 +27,18 @@ export default function LoginPage() {
       router.push("/")
       router.refresh()
     }
+  }
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) { setError("Enter your email address above first."); return }
+    setResetLoading(true)
+    setError("")
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setResetSent(true)
+    setResetLoading(false)
   }
 
   return (
@@ -57,7 +72,16 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold mb-2">Password</div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 font-semibold">Password</div>
+                <button
+                  type="button"
+                  onClick={() => setShowReset(r => !r)}
+                  className="mono text-[10.5px] text-race hover:text-race-deep underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <input
                 type="password"
                 value={password}
@@ -68,9 +92,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && (
-              <p className="text-race text-sm font-medium">{error}</p>
-            )}
+            {error && <p className="text-race text-sm font-medium">{error}</p>}
 
             <button
               type="submit"
@@ -80,6 +102,29 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
+
+          {showReset && (
+            <div className="mt-4 pt-4 border-t border-line">
+              {resetSent ? (
+                <p className="text-sm text-pine font-medium text-center">
+                  Reset link sent — check your email.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-ink-3 mb-3">
+                    Enter your email above then tap the button below. We&apos;ll send a reset link.
+                  </p>
+                  <button
+                    onClick={handleReset}
+                    disabled={resetLoading}
+                    className="pl-btn pl-btn-ghost disabled:opacity-50"
+                  >
+                    {resetLoading ? "Sending…" : "Send reset link"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <p className="text-center text-sm text-ink-3 mt-4">
