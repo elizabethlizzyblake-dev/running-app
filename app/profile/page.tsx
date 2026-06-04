@@ -8,6 +8,8 @@ import { ChevronLeft, Camera, Check } from "lucide-react"
 import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import { AvatarCropModal } from "@/components/avatar-crop-modal"
 import { AvatarCircle, PRESETS } from "@/components/avatar-circle"
+import { PERSONA_CONFIG } from "@/lib/onboarding"
+import type { Persona } from "@/lib/types"
 
 const LEVELS = [
   { key: "beginner", label: "Beginner", emoji: "🌱" },
@@ -37,6 +39,7 @@ export default function ProfilePage() {
     spotify_playlist_url: "",
     joined_at:            "",
     strava_athlete_id:    null as number | null,
+    persona:              null as Persona | null,
   })
 
   const [stats, setStats] = useState({ runs: 0, distance: 0 })
@@ -61,6 +64,7 @@ export default function ProfilePage() {
           spotify_playlist_url: p.spotify_playlist_url ?? "",
           joined_at:            p.joined_at ?? "",
           strava_athlete_id:    p.strava_athlete_id ?? null,
+          persona:              (p.persona as Persona | null) ?? null,
         })
       }
 
@@ -173,6 +177,20 @@ export default function ProfilePage() {
             Member since {joinedDate}
           </p>
         )}
+
+        {/* Persona badge */}
+        {profile.persona && PERSONA_CONFIG[profile.persona] && (() => {
+          const cfg = PERSONA_CONFIG[profile.persona!]
+          return (
+            <div className="mt-3 px-4 py-[10px] rounded-[14px] border border-line bg-card flex items-center gap-3">
+              <span className="text-[22px]">{cfg.emoji}</span>
+              <div className="text-left">
+                <div className="font-bold text-[13px] text-ink">{cfg.tagline}</div>
+                <div className="text-[11px] text-ink-3">{cfg.description}</div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Preset avatars */}
         <div className="mt-4 px-[22px] w-full">

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import {
   RouteMotif,
   PacelineMedal,
@@ -14,6 +15,8 @@ import { type MedalCategory } from "@/components/paceline-ui"
 import { AvatarCircle } from "@/components/avatar-circle"
 import { formatPace } from "@/lib/formatting"
 import { computeStreak } from "@/lib/achievements"
+import { PERSONA_CONFIG } from "@/lib/onboarding"
+import type { Persona } from "@/lib/types"
 import Link from "next/link"
 import { Map as MapIcon, Medal, Users, Zap } from "lucide-react"
 
@@ -98,19 +101,19 @@ function LandingPage() {
 
 // ── Motivation helpers ────────────────────────────────────────────
 
-function suggestNextRun(lastRunDate: string | null, lastRunType: string | null): string {
-  if (!lastRunDate) return 'Time to log your first run!'
+function nextRunSuggestion(lastRunDate: string | null, lastRunType: string | null): string {
+  if (!lastRunDate) return 'Log your first run to get started.'
   const daysSince = Math.floor(
     (Date.now() - new Date(lastRunDate).getTime()) / (1000 * 60 * 60 * 24)
   )
-  if (daysSince === 0) return 'Great work today! Rest up or do an easy recovery.'
+  if (daysSince === 0) return 'Great work today — rest up or add a short recovery jog.'
   if (daysSince === 1) {
-    if (lastRunType === 'long') return 'After a long run, try an easy recovery jog today.'
-    if (lastRunType === 'interval' || lastRunType === 'tempo') return 'Hard session yesterday — an easy run today will pay dividends.'
-    return 'Keep the momentum — a short easy run today will do it.'
+    if (lastRunType === 'long') return 'After a long run, an easy jog today will speed up recovery.'
+    if (lastRunType === 'interval' || lastRunType === 'tempo') return 'Hard session yesterday — easy miles today pay dividends.'
+    return 'Keep the momentum — even a short run today counts.'
   }
-  if (daysSince <= 3) return 'You\'ve had a rest day or two. A steady run now will keep your streak alive.'
-  return 'It\'s been a few days — any run counts. Even 2km is a win.'
+  if (daysSince <= 3) return 'A rest day or two is fine. A run today keeps the streak alive.'
+  return "It's been a few days — any run counts. Even 2km is a win."
 }
 
 function streakMessage(streak: number): string {
@@ -118,9 +121,18 @@ function streakMessage(streak: number): string {
   if (streak === 1) return 'One day down. Show up again tomorrow.'
   if (streak < 5) return `${streak} days running. You're building something real.`
   if (streak < 7) return `${streak} days in a row. A week streak is within reach.`
-  if (streak === 7) return '7-day streak! Week Warrior badge unlocked.'
+  if (streak === 7) return '7-day streak — Week Warrior badge unlocked.'
   if (streak < 14) return `${streak} days straight. Consistency beats intensity.`
   return `${streak}-day streak. You're a different kind of runner now.`
+}
+
+function getWeekStart(): string {
+  const now = new Date()
+  const day = now.getDay()
+  const daysBack = day === 0 ? 6 : day - 1
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - daysBack)
+  return monday.toISOString().split('T')[0]
 }
 
 // ── Dashboard (authenticated) ─────────────────────────────────────
@@ -138,14 +150,16 @@ export default async function HomePage({
 
   const now = new Date()
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  const monthName = now.toLocaleString('default', { month: 'long' })
-  const dayName = now.toLocaleDateString('en-US', { weekday: 'short' })
-  const dayNum = now.getDate()
+  const weekStart  = getWeekStart()
+  const monthName  = now.toLocaleString('default', { month: 'long' })
+  const dayName    = now.toLocaleDateString('en-US', { weekday: 'short' })
+  const dayNum     = now.getDate()
 
   const [
     { data: profile },
     { data: runs },
     { data: allRuns },
+    { data: weekRuns },
     { data: badges },
     { data: allChallenges },
     { data: joined },
@@ -155,12 +169,16 @@ export default async function HomePage({
     supabase.from('users').select('*').eq('id', user.id).single(),
     supabase.from('runs').select('*').eq('user_id', user.id).gte('date', monthStart).order('date', { ascending: false }),
     supabase.from('runs').select('date, type').eq('user_id', user.id).order('date', { ascending: false }).limit(30),
+    supabase.from('runs').select('id').eq('user_id', user.id).gte('date', weekStart),
     supabase.from('badges').select('*').eq('user_id', user.id).order('earned_date', { ascending: false }).limit(5),
     supabase.from('challenges').select('*'),
     supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
     supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').maybeSingle(),
     supabase.from('users').select('*', { count: 'exact', head: true }),
   ])
+
+  // Redirect to onboarding if not yet completed
+  if (profile && !profile.onboarding_completed) redirect('/onboarding')
 
   const progressMap = new Map((joined ?? []).map((j: { challenge_id: string; progress: number }) => [j.challenge_id, Number(j.progress)]))
   const joinedIds = new Set((joined ?? []).map((j: { challenge_id: string }) => j.challenge_id))
@@ -183,8 +201,12 @@ export default async function HomePage({
   const stravaJustConnected = params.strava === 'connected'
   const stravaImported = parseInt(params.imported ?? '0')
 
-  const lastRunDate = (allRuns ?? [])[0]?.date ?? null
-  const lastRunType = (allRuns ?? [])[0]?.type ?? null
+  const lastRunDate   = (allRuns ?? [])[0]?.date ?? null
+  const lastRunType   = (allRuns ?? [])[0]?.type ?? null
+  const persona       = (profile?.persona ?? null) as Persona | null
+  const personaCfg    = persona ? PERSONA_CONFIG[persona] : null
+  const weeklyTarget  = profile?.weekly_target ?? 3
+  const runsThisWeek  = weekRuns?.length ?? 0
 
   return (
     <div className="min-h-screen bg-paper pb-[110px] pl-anim">
@@ -262,16 +284,38 @@ export default async function HomePage({
         </div>
       </div>
 
-      {/* Streak + next run suggestion */}
+      {/* Persona motivation card */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
         <div className="pl-card p-4 flex items-start gap-3">
           <Flame size={20} className="text-race flex-shrink-0 mt-[2px]" />
           <div>
-            <div className="font-semibold text-[14px] mb-1">{streakMessage(streakDays)}</div>
+            <div className="font-semibold text-[14px] mb-1">
+              {personaCfg ? personaCfg.headline : streakMessage(streakDays)}
+            </div>
             <p className="text-[12.5px] text-ink-3 leading-[1.4]">
-              {suggestNextRun(lastRunDate, lastRunType)}
+              {personaCfg ? personaCfg.sub : nextRunSuggestion(lastRunDate, lastRunType)}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Weekly goal card */}
+      <div className="px-[22px] pt-[4px] pb-[6px]">
+        <div className="pl-card p-4">
+          <div className="flex items-center justify-between mb-[10px]">
+            <span className="pl-seclabel">This week</span>
+            <span className="mono text-[11px] text-ink-3">
+              {runsThisWeek} / {weeklyTarget} run{weeklyTarget !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <PacelineProgress value={(runsThisWeek / weeklyTarget) * 100} height={8} />
+          <p className="text-[12px] text-ink-3 mt-[8px]">
+            {runsThisWeek >= weeklyTarget
+              ? `Weekly goal hit! ${personaCfg?.emoji ?? '🎉'}`
+              : runsThisWeek === 0
+              ? nextRunSuggestion(lastRunDate, lastRunType)
+              : `${weeklyTarget - runsThisWeek} more run${weeklyTarget - runsThisWeek !== 1 ? 's' : ''} to hit your weekly goal.`}
+          </p>
         </div>
       </div>
 
