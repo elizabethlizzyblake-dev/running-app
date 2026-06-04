@@ -56,16 +56,19 @@ proxy.ts              # Vercel edge middleware (session refresh, auth redirect)
 Create `.env.local` with:
 
 ```env
+# Supabase — Project Settings → API
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # never expose publicly
 
+# Strava — https://www.strava.com/settings/api
 STRAVA_CLIENT_ID=your-strava-client-id
 STRAVA_CLIENT_SECRET=your-strava-client-secret
-STRAVA_VERIFY_TOKEN=any-random-string-for-webhook-verification
-
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+STRAVA_WEBHOOK_VERIFY_TOKEN=any-random-string-for-webhook-verification
 ```
+
+All six variables are required. The app will fail at runtime if any are missing.
+`SUPABASE_SERVICE_ROLE_KEY` bypasses RLS — keep it server-side only, never prefix with `NEXT_PUBLIC_`.
 
 ## Supabase setup
 
