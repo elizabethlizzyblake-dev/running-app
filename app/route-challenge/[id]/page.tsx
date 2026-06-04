@@ -185,7 +185,7 @@ export default function RouteChallengeePage() {
     if (!userId || joining || joined) return
     setJoining(true)
     setJoinError(null)
-    const { error } = await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
+    const { error } = await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id })
     setJoining(false)
     if (error) {
       setJoinError(`${error.message} [${error.code}]`)
