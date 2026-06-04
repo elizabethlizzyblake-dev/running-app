@@ -110,11 +110,16 @@ export default function ChallengesPage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: all }, { data: participations }, { data: routes }] = await Promise.all([
+      const [challengeRes, participationRes, routeRes] = await Promise.all([
         supabase.from('challenges').select('*').order('start_date'),
         supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
         supabase.from('route_challenges').select('challenge_id'),
       ])
+
+      const all            = challengeRes.data
+      const participations = participationRes.data
+      const routes         = routeRes.data
+
       const progressMap  = new Map((participations ?? []).map((p: { challenge_id: string; progress: number }) => [p.challenge_id, Number(p.progress)]))
       const joinedIds    = new Set((participations ?? []).map((p: { challenge_id: string }) => p.challenge_id))
       const routeIds     = new Set((routes ?? []).map((r: { challenge_id: string }) => r.challenge_id))
