@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 import {
   Home,
   Trophy,
@@ -195,8 +197,20 @@ export function PacelineNav({ active }: { active: string }) {
   )
 }
 
-// Settings button (links to admin)
+// Settings button — only renders for admin users
 export function SettingsButton() {
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('users').select('is_admin').eq('id', user.id).single()
+        .then(({ data }) => setIsAdmin(!!data?.is_admin))
+    })
+  }, [])
+
+  if (!isAdmin) return null
+
   return (
     <Link
       href="/admin"
