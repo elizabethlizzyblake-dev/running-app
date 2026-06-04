@@ -32,7 +32,7 @@ type ChallengeRow = {
     start_date: string
     end_date: string
     target_metric: string
-  } | null
+  }[]
 }
 
 /**
@@ -51,8 +51,8 @@ export async function updateChallengeProgress(
   if (!joined) return
 
   await Promise.all(
-    (joined as ChallengeRow[]).map(async (row) => {
-      const challenge = row.challenges
+    (joined as unknown as ChallengeRow[]).map(async (row) => {
+      const challenge = row.challenges[0]
       if (!challenge) return
 
       const { data: challengeRuns } = await supabase

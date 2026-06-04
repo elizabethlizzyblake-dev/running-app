@@ -34,6 +34,7 @@ function ChallengeCard({ c, onJoin, joiningId }: { c: Challenge; onJoin: (id: st
   const isJoining = joiningId === c.id
   const p = ((c.currentProgress ?? 0) / c.targetValue) * 100
   const done = p >= 100
+  // eslint-disable-next-line react-hooks/purity
   const daysLeft = Math.max(0, Math.ceil((new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
 
   return (

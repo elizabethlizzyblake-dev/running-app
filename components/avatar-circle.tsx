@@ -57,6 +57,7 @@ export function AvatarCircle({ url, name, size = "md", className, onError }: Pro
   if (url && !url.startsWith("preset:")) {
     return (
       <div className={base} style={{ width: s.circle, height: s.circle }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
           alt=""

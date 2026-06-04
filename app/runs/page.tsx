@@ -8,9 +8,9 @@ import Link from "next/link"
 import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
 import { formatPace, formatDuration, formatDate, formatMonth } from "@/lib/formatting"
 import { updateChallengeProgress } from "@/lib/progress"
-import type { Run } from "@/lib/types"
+import type { Run, RunType } from "@/lib/types"
 
-const TYPE_OPTIONS = [
+const TYPE_OPTIONS: { value: RunType; label: string }[] = [
   { value: 'easy',     label: 'Easy' },
   { value: 'tempo',    label: 'Tempo' },
   { value: 'long',     label: 'Long' },
@@ -25,7 +25,7 @@ const TYPE_LABELS: Record<string, string> = Object.fromEntries(TYPE_OPTIONS.map(
 
 // ── Edit modal ──────────────────────────────────────────────────
 
-type EditForm = { type: string; notes: string; date: string; distance: string; duration: string; pace: string }
+type EditForm = { type: RunType | ''; notes: string; date: string; distance: string; duration: string; pace: string }
 
 function EditModal({ run, onSave, onDelete, onClose }: {
   run: Run
@@ -47,7 +47,7 @@ function EditModal({ run, onSave, onDelete, onClose }: {
 
   const handleSave = async () => {
     setSaving(true)
-    const updates: Partial<Run> = { type: form.type, notes: form.notes || null }
+    const updates: Partial<Run> = { type: form.type as RunType, notes: form.notes || null }
     if (!isStrava) {
       updates.date     = form.date
       updates.distance = parseFloat(form.distance) || 0
@@ -82,7 +82,7 @@ function EditModal({ run, onSave, onDelete, onClose }: {
         {isStrava && (
           <div className="bg-[#FC4C02]/8 border border-[#FC4C02]/20 rounded-[12px] px-4 py-3 mb-4">
             <p className="text-[12px] text-ink-2">
-              🟠 Distance, pace and duration are synced from Strava and can't be changed here.
+              🟠 Distance, pace and duration are synced from Strava and can&apos;t be changed here.
             </p>
           </div>
         )}
