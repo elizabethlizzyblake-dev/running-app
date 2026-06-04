@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+"use client"
+
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-
-export const dynamic = 'force-dynamic'
+import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
 
 type Run = {
   id: string
@@ -17,10 +18,17 @@ type Run = {
   strava_activity_id: number | null
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  easy: 'Easy', tempo: 'Tempo', long: 'Long',
-  interval: 'Intervals', race: 'Race', recovery: 'Recovery', trail: 'Trail',
-}
+const TYPE_OPTIONS = [
+  { value: 'easy',     label: 'Easy' },
+  { value: 'tempo',    label: 'Tempo' },
+  { value: 'long',     label: 'Long' },
+  { value: 'interval', label: 'Intervals' },
+  { value: 'race',     label: 'Race' },
+  { value: 'recovery', label: 'Recovery' },
+  { value: 'trail',    label: 'Trail' },
+]
+
+const TYPE_LABELS: Record<string, string> = Object.fromEntries(TYPE_OPTIONS.map(o => [o.value, o.label]))
 
 function formatPace(pace: number) {
   if (!pace) return '--'
@@ -51,39 +59,232 @@ function formatMonth(monthStr: string) {
     .toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 }
 
-export default async function RunsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+// ── Edit modal ──────────────────────────────────────────────────
 
-  const { data: runs } = await supabase
-    .from('runs')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('date', { ascending: false })
+type EditForm = { type: string; notes: string; date: string; distance: string; duration: string; pace: string }
 
-  const allRuns = (runs ?? []) as Run[]
+function EditModal({ run, onSave, onDelete, onClose }: {
+  run: Run
+  onSave: (id: string, updates: Partial<Run>) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+  onClose: () => void
+}) {
+  const isStrava = !!run.strava_activity_id
+  const [form, setForm] = useState<EditForm>({
+    type:     run.type ?? '',
+    notes:    run.notes ?? '',
+    date:     run.date,
+    distance: String(run.distance),
+    duration: String(run.duration),
+    pace:     String(run.pace),
+  })
+  const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    const updates: Partial<Run> = { type: form.type, notes: form.notes || null }
+    if (!isStrava) {
+      updates.date     = form.date
+      updates.distance = parseFloat(form.distance) || 0
+      updates.duration = parseInt(form.duration)   || 0
+      updates.pace     = parseFloat(form.pace)     || 0
+    }
+    await onSave(run.id, updates)
+    setSaving(false)
+  }
+
+  const handleDelete = async () => {
+    setSaving(true)
+    await onDelete(run.id)
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-[60]" onClick={onClose} />
+      <div className="fixed left-0 right-0 bottom-0 z-[70] bg-paper rounded-t-[20px] px-[22px] pt-[14px] pb-[38px]">
+        <div className="w-10 h-1 rounded-full bg-line mx-auto mb-5" />
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-[17px]">
+            {isStrava ? 'Edit Strava run' : 'Edit run'}
+          </h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-ink-3">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Strava notice */}
+        {isStrava && (
+          <div className="bg-[#FC4C02]/8 border border-[#FC4C02]/20 rounded-[12px] px-4 py-3 mb-4">
+            <p className="text-[12px] text-ink-2">
+              🟠 Distance, pace and duration are synced from Strava and can't be changed here.
+            </p>
+          </div>
+        )}
+
+        {/* Run type chips */}
+        <div className="mb-4">
+          <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">Run type</div>
+          <div className="flex gap-2 flex-wrap">
+            {TYPE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setForm(f => ({ ...f, type: opt.value }))}
+                className={`px-3 py-[6px] rounded-[10px] text-[12px] font-semibold border transition-colors ${
+                  form.type === opt.value
+                    ? 'bg-pine text-paper border-pine'
+                    : 'bg-paper text-ink-2 border-line'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Notes / description */}
+        <div className="mb-4">
+          <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">
+            {isStrava ? 'Description' : 'Notes'}
+          </div>
+          <textarea
+            value={form.notes}
+            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+            placeholder={isStrava ? 'Add a description…' : 'How did it feel?'}
+            rows={3}
+            className="w-full rounded-[12px] border border-line bg-card px-4 py-3 text-[14px] text-ink resize-none outline-none focus:border-pine"
+          />
+        </div>
+
+        {/* Manual-run-only fields */}
+        {!isStrava && (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div>
+              <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">Distance (km)</div>
+              <input type="number" step="0.01" value={form.distance}
+                onChange={e => setForm(f => ({ ...f, distance: e.target.value }))}
+                className="w-full rounded-[12px] border border-line bg-card px-3 py-3 text-[14px] text-ink outline-none focus:border-pine"
+              />
+            </div>
+            <div>
+              <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">Duration (min)</div>
+              <input type="number" value={form.duration}
+                onChange={e => setForm(f => ({ ...f, duration: e.target.value }))}
+                className="w-full rounded-[12px] border border-line bg-card px-3 py-3 text-[14px] text-ink outline-none focus:border-pine"
+              />
+            </div>
+            <div>
+              <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">Date</div>
+              <input type="date" value={form.date}
+                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                className="w-full rounded-[12px] border border-line bg-card px-3 py-3 text-[14px] text-ink outline-none focus:border-pine"
+              />
+            </div>
+            <div>
+              <div className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mb-2">Pace (min/km)</div>
+              <input type="number" step="0.01" value={form.pace}
+                onChange={e => setForm(f => ({ ...f, pace: e.target.value }))}
+                className="w-full rounded-[12px] border border-line bg-card px-3 py-3 text-[14px] text-ink outline-none focus:border-pine"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Save */}
+        <button onClick={handleSave} disabled={saving}
+          className="pl-btn pl-btn-primary disabled:opacity-50 mb-2"
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+
+        {/* Delete */}
+        {confirmDelete ? (
+          <div className="flex gap-2">
+            <button onClick={() => setConfirmDelete(false)}
+              className="flex-1 py-[13px] rounded-[14px] border border-line text-ink-2 font-semibold text-[13px]"
+            >
+              Cancel
+            </button>
+            <button onClick={handleDelete} disabled={saving}
+              className="flex-1 py-[13px] rounded-[14px] bg-race text-paper font-bold text-[13px] disabled:opacity-50"
+            >
+              Delete run
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setConfirmDelete(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 text-[13px] text-ink-3 font-semibold"
+          >
+            <Trash2 size={14} /> Delete run
+          </button>
+        )}
+      </div>
+    </>
+  )
+}
+
+// ── Page ────────────────────────────────────────────────────────
+
+export default function RunsPage() {
+  const router = useRouter()
+  const [runs, setRuns] = useState<Run[]>([])
+  const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState("")
+  const [editRun, setEditRun] = useState<Run | null>(null)
+
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.replace('/login'); return }
+      setUserId(user.id)
+      const { data } = await supabase.from('runs').select('*').eq('user_id', user.id).order('date', { ascending: false })
+      setRuns((data ?? []) as Run[])
+      setLoading(false)
+    }
+    load()
+  }, [router])
+
+  const handleSave = async (id: string, updates: Partial<Run>) => {
+    await supabase.from('runs').update(updates).eq('id', id).eq('user_id', userId)
+    setRuns(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
+    setEditRun(null)
+  }
+
+  const handleDelete = async (id: string) => {
+    await supabase.from('runs').delete().eq('id', id).eq('user_id', userId)
+    setRuns(prev => prev.filter(r => r.id !== id))
+    setEditRun(null)
+  }
+
+  if (loading) return null
 
   // Group by YYYY-MM
   const grouped: Record<string, Run[]> = {}
-  for (const run of allRuns) {
+  for (const run of runs) {
     const month = run.date.substring(0, 7)
     if (!grouped[month]) grouped[month] = []
     grouped[month].push(run)
   }
 
-  const totalDistance = allRuns.reduce((s, r) => s + Number(r.distance), 0)
+  const totalDistance = runs.reduce((s, r) => s + Number(r.distance), 0)
 
   return (
     <div className="min-h-screen bg-paper pb-[110px] pl-anim">
       <SettingsButton />
 
+      {editRun && (
+        <EditModal
+          run={editRun}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onClose={() => setEditRun(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 px-[22px] pt-[54px] pb-[6px]">
-        <Link
-          href="/"
-          className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2 flex-shrink-0"
-        >
+        <Link href="/" className="w-[38px] h-[38px] rounded-full border border-line bg-card flex items-center justify-center text-ink-2 flex-shrink-0">
           <ChevronLeft size={18} />
         </Link>
         <div className="flex items-center gap-[9px]">
@@ -99,11 +300,11 @@ export default async function RunsPage() {
         <div className="pl-eyebrow">Your runs</div>
         <h1 className="pl-heading mt-2">History</h1>
         <div className="text-sm text-ink-2 mt-2">
-          {allRuns.length} runs &middot; {totalDistance.toFixed(1)} km total
+          {runs.length} runs &middot; {totalDistance.toFixed(1)} km total
         </div>
       </div>
 
-      {allRuns.length === 0 ? (
+      {runs.length === 0 ? (
         <div className="px-[22px] mt-8">
           <div className="pl-card p-8 text-center">
             <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">No runs yet</div>
@@ -163,8 +364,15 @@ export default async function RunsPage() {
                           )}
                         </div>
 
-                        <div className="mono text-[11px] text-ink-3 flex-shrink-0 text-right pt-[2px]">
-                          {formatDate(run.date)}
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <span className="mono text-[11px] text-ink-3">{formatDate(run.date)}</span>
+                          <button
+                            onClick={() => setEditRun(run)}
+                            className="w-7 h-7 rounded-full border border-line bg-card flex items-center justify-center text-ink-3 hover:text-ink transition-colors"
+                            aria-label="Edit run"
+                          >
+                            <Pencil size={12} />
+                          </button>
                         </div>
                       </div>
                     </div>
