@@ -166,30 +166,55 @@ export default function AdminPage() {
           {webhookStatus && (
             <p className="mono text-[11px] text-pine mb-3">{webhookStatus}</p>
           )}
-          <button
-            className="pl-btn pl-btn-dark disabled:opacity-50"
-            disabled={webhookRegistering}
-            onClick={async () => {
-              setWebhookRegistering(true)
-              setWebhookStatus(null)
-              try {
-                const res = await fetch('/api/strava/register-webhook', { method: 'POST' })
-                const data = await res.json()
-                if (data.id) {
-                  setWebhookStatus(`Webhook registered — subscription ID: ${data.id}`)
-                } else if (data.errors?.[0]?.resource === 'PushSubscription') {
-                  setWebhookStatus('Webhook already registered.')
-                } else {
-                  setWebhookStatus(JSON.stringify(data))
+          <div className="flex gap-2">
+            <button
+              className="pl-btn pl-btn-dark disabled:opacity-50 flex-1"
+              disabled={webhookRegistering}
+              onClick={async () => {
+                setWebhookRegistering(true)
+                setWebhookStatus(null)
+                try {
+                  const res = await fetch('/api/strava/register-webhook', { method: 'POST' })
+                  const data = await res.json()
+                  if (data.id) {
+                    setWebhookStatus(`Webhook registered — subscription ID: ${data.id}`)
+                  } else if (data.errors?.[0]?.resource === 'PushSubscription') {
+                    setWebhookStatus('Already registered — click Check to see the subscription ID.')
+                  } else {
+                    setWebhookStatus(JSON.stringify(data))
+                  }
+                } catch {
+                  setWebhookStatus('Failed — check env vars.')
                 }
-              } catch {
-                setWebhookStatus('Failed — check env vars.')
-              }
-              setWebhookRegistering(false)
-            }}
-          >
-            {webhookRegistering ? 'Registering…' : 'Register Strava Webhook'}
-          </button>
+                setWebhookRegistering(false)
+              }}
+            >
+              {webhookRegistering ? 'Registering…' : 'Register Strava Webhook'}
+            </button>
+            <button
+              className="pl-btn pl-btn-dark disabled:opacity-50"
+              disabled={webhookRegistering}
+              onClick={async () => {
+                setWebhookRegistering(true)
+                setWebhookStatus(null)
+                try {
+                  const res = await fetch('/api/strava/register-webhook', { method: 'GET' })
+                  const data = await res.json()
+                  const sub = Array.isArray(data) ? data[0] : null
+                  if (sub?.id) {
+                    setWebhookStatus(`Active subscription ID: ${sub.id} — add this as STRAVA_WEBHOOK_SUBSCRIPTION_ID in Vercel.`)
+                  } else {
+                    setWebhookStatus('No active subscription found.')
+                  }
+                } catch {
+                  setWebhookStatus('Failed — check env vars.')
+                }
+                setWebhookRegistering(false)
+              }}
+            >
+              Check
+            </button>
+          </div>
         </div>
 
       {/* Create Challenge */}
