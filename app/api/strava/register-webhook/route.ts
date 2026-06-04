@@ -35,5 +35,8 @@ export async function POST(request: NextRequest) {
     }),
   })
 
-  return NextResponse.json(await res.json())
+  const data = await res.json()
+  // data.id is your subscription ID — add it as STRAVA_WEBHOOK_SUBSCRIPTION_ID
+  // in Vercel environment variables to enable POST request verification.
+  return NextResponse.json(data)
 }

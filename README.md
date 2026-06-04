@@ -65,6 +65,8 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # never expose publicly
 STRAVA_CLIENT_ID=your-strava-client-id
 STRAVA_CLIENT_SECRET=your-strava-client-secret
 STRAVA_WEBHOOK_VERIFY_TOKEN=any-random-string-for-webhook-verification
+# Set after registering the webhook — copy the "id" from the admin panel response
+STRAVA_WEBHOOK_SUBSCRIPTION_ID=
 ```
 
 All six variables are required. The app will fail at runtime if any are missing.
