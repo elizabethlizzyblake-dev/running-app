@@ -165,7 +165,7 @@ export default async function HomePage({
 
       {/* Personal Stats Row */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
-        <div className="pl-card py-[18px] px-2 flex">
+        <Link href="/runs" className="pl-card py-[18px] px-2 flex block">
           {[
             { n: totalRuns, l: "Runs", c: "text-race" },
             { n: `${longestRun.toFixed(1)}`, l: "Longest km", c: "text-pine" },
@@ -176,7 +176,7 @@ export default async function HomePage({
               <div className="pl-statl">{x.l}</div>
             </div>
           ))}
-        </div>
+        </Link>
       </div>
 
       {/* Leaderboard Position */}
