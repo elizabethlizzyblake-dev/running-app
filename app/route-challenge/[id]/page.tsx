@@ -183,12 +183,8 @@ export default function RouteChallengeePage() {
   const handleJoin = async () => {
     if (!userId || joining || joined) return
     setJoining(true)
-    const res = await fetch("/api/join-challenge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ challengeId: id }),
-    })
-    if (res.ok) {
+    const { error } = await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
+    if (!error) {
       setJoined(true)
       setParticipants(prev => [...prev, {
         userId,
