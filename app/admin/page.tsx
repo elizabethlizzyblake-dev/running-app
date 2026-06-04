@@ -25,6 +25,8 @@ export default function AdminPage() {
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
+  const [webhookStatus, setWebhookStatus] = useState<string | null>(null)
+  const [webhookRegistering, setWebhookRegistering] = useState(false)
   const [formData, setFormData] = useState({
     title: "", description: "", startDate: "", endDate: "",
     badgeReward: "", targetMetric: "distance", targetValue: ""
@@ -152,7 +154,45 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* Create Challenge */}
+            {/* Strava Webhook */}
+        <div className="pl-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🟠</span>
+            <h2 className="font-semibold text-ink">Strava Webhook</h2>
+          </div>
+          <p className="text-xs text-ink-3 mb-3">
+            Register once so all members&apos; runs auto-import when they finish on Strava.
+          </p>
+          {webhookStatus && (
+            <p className="mono text-[11px] text-pine mb-3">{webhookStatus}</p>
+          )}
+          <button
+            className="pl-btn pl-btn-dark disabled:opacity-50"
+            disabled={webhookRegistering}
+            onClick={async () => {
+              setWebhookRegistering(true)
+              setWebhookStatus(null)
+              try {
+                const res = await fetch('/api/strava/register-webhook', { method: 'POST' })
+                const data = await res.json()
+                if (data.id) {
+                  setWebhookStatus(`Webhook registered — subscription ID: ${data.id}`)
+                } else if (data.errors?.[0]?.resource === 'PushSubscription') {
+                  setWebhookStatus('Webhook already registered.')
+                } else {
+                  setWebhookStatus(JSON.stringify(data))
+                }
+              } catch {
+                setWebhookStatus('Failed — check env vars.')
+              }
+              setWebhookRegistering(false)
+            }}
+          >
+            {webhookRegistering ? 'Registering…' : 'Register Strava Webhook'}
+          </button>
+        </div>
+
+      {/* Create Challenge */}
         <div className="pl-card p-4">
           <div className="flex items-center gap-2 mb-4">
             <Target size={16} className="text-race" />

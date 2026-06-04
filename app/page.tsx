@@ -38,7 +38,12 @@ function formatPace(pace: number) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ strava?: string; imported?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -57,6 +62,7 @@ export default async function HomePage() {
     { data: joined },
     { data: leaderboardEntry },
     { count: totalMembers },
+    { data: stravaProfile },
   ] = await Promise.all([
     supabase.from('users').select('*').eq('id', user.id).single(),
     supabase.from('runs').select('*').eq('user_id', user.id).gte('date', monthStart),
@@ -65,6 +71,7 @@ export default async function HomePage() {
     supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
     supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').single(),
     supabase.from('users').select('*', { count: 'exact', head: true }),
+    supabase.from('users').select('strava_athlete_id').eq('id', user.id).single(),
   ])
 
   const progressMap = new Map((joined ?? []).map((j: { challenge_id: string; progress: number }) => [j.challenge_id, Number(j.progress)]))
@@ -81,6 +88,9 @@ export default async function HomePage() {
   const progressPercent = (totalDistance / TARGET_DISTANCE) * 100
   const firstName = profile?.name?.split(' ')[0] ?? 'Runner'
   const rankChange = leaderboardEntry?.change ?? 0
+  const stravaConnected = !!stravaProfile?.strava_athlete_id
+  const stravaJustConnected = params.strava === 'connected'
+  const stravaImported = parseInt(params.imported ?? '0')
 
   return (
     <div className="min-h-screen bg-paper pb-[110px] pl-anim">
@@ -102,6 +112,21 @@ export default async function HomePage() {
         <div className="pl-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
         <h1 className="pl-heading mt-2">Hey,<br />{firstName}</h1>
       </div>
+
+      {/* Strava connected banner */}
+      {stravaJustConnected && (
+        <div className="mx-[22px] mb-2">
+          <div className="pl-card px-4 py-3 flex items-center gap-3 border-pine/40 bg-pine/5">
+            <span className="text-lg">🟠</span>
+            <div>
+              <p className="text-sm font-semibold text-pine">Strava connected!</p>
+              <p className="mono text-[10.5px] text-ink-3">
+                {stravaImported > 0 ? `${stravaImported} run${stravaImported !== 1 ? 's' : ''} imported from the last 30 days` : 'No runs found in the last 30 days yet'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Club Goal Hero */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
@@ -249,8 +274,30 @@ export default async function HomePage() {
         </div>
       )}
 
+      {/* Strava connect */}
+      <div className="px-[22px] pt-4">
+        {stravaConnected ? (
+          <div className="pl-card px-4 py-3 flex items-center gap-3">
+            <span className="text-lg">🟠</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-ink">Strava connected</p>
+              <p className="mono text-[10.5px] text-ink-3">Runs import automatically</p>
+            </div>
+          </div>
+        ) : (
+          <Link href="/api/strava/connect" className="pl-card px-4 py-3 flex items-center gap-3 block">
+            <span className="text-lg">🟠</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-ink">Connect Strava</p>
+              <p className="mono text-[10.5px] text-ink-3">Auto-import runs instead of logging manually</p>
+            </div>
+            <ChevronRight size={16} className="text-ink-3" />
+          </Link>
+        )}
+      </div>
+
       {/* Log CTA */}
-      <div className="px-[22px] pt-5">
+      <div className="px-[22px] pt-3">
         <Link href="/log-run" className="pl-btn pl-btn-primary">
           + Log today&apos;s run
         </Link>
