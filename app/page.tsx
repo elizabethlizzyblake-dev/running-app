@@ -12,6 +12,7 @@ import {
   Trophy,
 } from "@/components/paceline-ui"
 import { type MedalCategory } from "@/components/paceline-ui"
+import { AvatarCircle } from "@/components/avatar-circle"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
@@ -109,13 +110,7 @@ export default async function HomePage({
       <Link href="/profile" className="block px-[22px] pt-[14px] pb-2">
         <div className="pl-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
         <div className="flex items-center gap-4 mt-2">
-          <div className="w-[52px] h-[52px] rounded-full bg-paper-2 border-2 border-line overflow-hidden flex-shrink-0 flex items-center justify-center">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <span className="anton text-[20px] text-ink-3">{firstName[0]?.toUpperCase()}</span>
-            )}
-          </div>
+          <AvatarCircle url={avatarUrl} name={firstName} size="md" />
           <h1 className="pl-heading">Hey,<br />{firstName}</h1>
         </div>
       </Link>

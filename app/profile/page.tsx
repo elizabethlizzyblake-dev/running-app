@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ChevronLeft, Camera, Check } from "lucide-react"
 import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import { AvatarCropModal } from "@/components/avatar-crop-modal"
+import { AvatarCircle, PRESETS } from "@/components/avatar-circle"
 
 const LEVELS = [
   { key: "beginner", label: "Beginner", emoji: "🌱" },
@@ -149,24 +150,15 @@ export default function ProfilePage() {
       </div>
 
       {/* Avatar */}
-      <div className="flex flex-col items-center pt-6 pb-5">
+      <div className="flex flex-col items-center pt-6 pb-2">
         <div className="relative">
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="w-[88px] h-[88px] rounded-full bg-paper-2 border-2 border-line overflow-hidden flex items-center justify-center"
-          >
-            {profile.avatar_url && !imgBroken ? (
-              <img
-                src={profile.avatar_url}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={() => setImgBroken(true)}
-              />
-            ) : (
-              <span className="anton text-[34px] text-ink-3">
-                {profile.name?.[0]?.toUpperCase() ?? "?"}
-              </span>
-            )}
+          <button onClick={() => fileRef.current?.click()}>
+            <AvatarCircle
+              url={imgBroken ? null : profile.avatar_url}
+              name={profile.name}
+              size="lg"
+              onError={() => setImgBroken(true)}
+            />
           </button>
           <button
             onClick={() => fileRef.current?.click()}
@@ -181,6 +173,38 @@ export default function ProfilePage() {
             Member since {joinedDate}
           </p>
         )}
+
+        {/* Preset avatars */}
+        <div className="mt-4 px-[22px] w-full">
+          <p className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 text-center mb-3">
+            Or choose a preset
+          </p>
+          <div className="grid grid-cols-8 gap-2 justify-items-center">
+            {PRESETS.map(preset => {
+              const isActive = profile.avatar_url === `preset:${preset.id}`
+              return (
+                <button
+                  key={preset.id}
+                  onClick={async () => {
+                    const url = `preset:${preset.id}`
+                    setImgBroken(false)
+                    setProfile(p => ({ ...p, avatar_url: url }))
+                    await supabase.from("users").update({ avatar_url: url }).eq("id", userId)
+                  }}
+                  className="relative rounded-full transition-transform active:scale-95"
+                  style={{
+                    width: 36, height: 36,
+                    background: preset.bg,
+                    outline: isActive ? "3px solid var(--race)" : "none",
+                    outlineOffset: "2px",
+                  }}
+                >
+                  <span className="text-[18px] leading-none">{preset.emoji}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="px-[22px] space-y-3">
