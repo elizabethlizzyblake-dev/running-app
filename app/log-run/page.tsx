@@ -14,7 +14,7 @@ import {
 import { runTypes } from "@/lib/mock-data"
 import { formatPace, calcPace } from "@/lib/formatting"
 import { checkAndAwardBadges } from "@/lib/achievements"
-import { updateLeaderboard, updateChallengeProgress } from "@/lib/progress"
+import { updateChallengeProgress } from "@/lib/progress"
 import Link from "next/link"
 
 type FormData = {
@@ -123,7 +123,7 @@ export default function LogRunPage() {
     const monthRuns = (allRuns ?? []).filter((r: { date: string }) => r.date >= monthStart)
 
     await Promise.all([
-      updateLeaderboard(supabase, userId, userName, monthRuns),
+      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
       updateChallengeProgress(supabase, userId),
     ])
 

@@ -8,17 +8,7 @@ import Link from "next/link"
 import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
 import { formatPace, formatDuration, formatDate, formatMonth } from "@/lib/formatting"
 import { updateChallengeProgress } from "@/lib/progress"
-
-type Run = {
-  id: string
-  date: string
-  distance: number
-  duration: number
-  pace: number
-  type: string
-  notes: string | null
-  strava_activity_id: number | null
-}
+import type { Run } from "@/lib/types"
 
 const TYPE_OPTIONS = [
   { value: 'easy',     label: 'Easy' },
@@ -223,14 +213,20 @@ export default function RunsPage() {
     await supabase.from('runs').update(updates).eq('id', id).eq('user_id', userId)
     setRuns(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
     setEditRun(null)
-    if (userId) await updateChallengeProgress(supabase, userId)
+    if (userId) await Promise.all([
+      updateChallengeProgress(supabase, userId),
+      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
+    ])
   }
 
   const handleDelete = async (id: string) => {
     await supabase.from('runs').delete().eq('id', id).eq('user_id', userId)
     setRuns(prev => prev.filter(r => r.id !== id))
     setEditRun(null)
-    if (userId) await updateChallengeProgress(supabase, userId)
+    if (userId) await Promise.all([
+      updateChallengeProgress(supabase, userId),
+      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
+    ])
   }
 
   if (loading) return null

@@ -1,11 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { BadgeCategory } from '@/lib/types'
 
 export type BadgeRun = { distance: number; date: string }
 
 export type BadgeDefinition = {
   name: string
   description: string
-  category: string
+  category: BadgeCategory
   icon: string
   requirement: string
   check: (runs: BadgeRun[]) => boolean
