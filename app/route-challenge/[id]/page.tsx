@@ -90,6 +90,7 @@ export default function RouteChallengeePage() {
 
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
   const [userId, setUserId] = useState("")
   const [myProfile, setMyProfile] = useState<{ name: string; avatarUrl: string | null } | null>(null)
   const [challenge, setChallenge] = useState<ChallengeInfo | null>(null)
@@ -183,18 +184,21 @@ export default function RouteChallengeePage() {
   const handleJoin = async () => {
     if (!userId || joining || joined) return
     setJoining(true)
+    setJoinError(null)
     const { error } = await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
-    if (!error) {
-      setJoined(true)
-      setParticipants(prev => [...prev, {
-        userId,
-        name: myProfile?.name ?? "You",
-        avatarUrl: myProfile?.avatarUrl ?? null,
-        progress: 0,
-        isMe: true,
-      }])
-    }
     setJoining(false)
+    if (error) {
+      setJoinError(`${error.message} [${error.code}]`)
+      return
+    }
+    setJoined(true)
+    setParticipants(prev => [...prev, {
+      userId,
+      name: myProfile?.name ?? "You",
+      avatarUrl: myProfile?.avatarUrl ?? null,
+      progress: 0,
+      isMe: true,
+    }])
   }
 
   if (loading || !routeInfo || !checkpoints.length) return null
@@ -384,9 +388,16 @@ export default function RouteChallengeePage() {
           >
             {joining ? "Joining…" : `Join ${challenge?.title}`}
           </button>
-          <p className="text-xs text-ink-3 text-center mt-2">
-            Your logged km count towards the challenge automatically
-          </p>
+          {joinError && (
+            <div className="mt-2 px-4 py-3 rounded-[12px] bg-race/10 border border-race/20">
+              <p className="text-[12px] text-race font-semibold">Failed to join: {joinError}</p>
+            </div>
+          )}
+          {!joinError && (
+            <p className="text-xs text-ink-3 text-center mt-2">
+              Your logged km count towards the challenge automatically
+            </p>
+          )}
         </div>
       )}
 

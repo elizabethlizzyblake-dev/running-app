@@ -30,7 +30,8 @@ type Challenge = {
   isRoute: boolean
 }
 
-function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => void }) {
+function ChallengeCard({ c, onJoin, joiningId }: { c: Challenge; onJoin: (id: string) => void; joiningId: string | null }) {
+  const isJoining = joiningId === c.id
   const p = ((c.currentProgress ?? 0) / c.targetValue) * 100
   const done = p >= 100
   const daysLeft = Math.max(0, Math.ceil((new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -83,8 +84,8 @@ function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => vo
         </div>
       ) : (
         <div className="flex flex-col gap-2 mt-[14px]">
-          <button className="pl-btn pl-btn-dark" onClick={() => onJoin(c.id)}>
-            Join quest
+          <button className="pl-btn pl-btn-dark disabled:opacity-50" onClick={() => onJoin(c.id)} disabled={!!joiningId}>
+            {isJoining ? 'Joining…' : 'Join quest'}
           </button>
           {c.isRoute && (
             <Link
@@ -103,6 +104,8 @@ function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => vo
 export default function ChallengesPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const [joiningId, setJoiningId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -141,11 +144,15 @@ export default function ChallengesPage() {
   }, [])
 
   const handleJoin = async (id: string) => {
-    if (!userId) return
-    const challenge = challenges.find(c => c.id === id)
-    if (!challenge) return
+    if (!userId || joiningId) return
+    setJoinError(null)
+    setJoiningId(id)
     const { error } = await supabase.from('challenge_participants').insert({ user_id: userId, challenge_id: id, progress: 0 })
-    if (error) { alert(`Join error: ${error.message} [${error.code}]`); return }
+    setJoiningId(null)
+    if (error) {
+      setJoinError(`${error.message} [${error.code}]`)
+      return
+    }
     setChallenges(prev => prev.map(c =>
       c.id === id ? { ...c, joined: true, participants: c.participants + 1 } : c
     ))
@@ -177,6 +184,12 @@ export default function ChallengesPage() {
         </div>
       </div>
 
+      {joinError && (
+        <div className="mx-[22px] mt-2 px-4 py-3 rounded-[12px] bg-race/10 border border-race/20">
+          <p className="text-[12px] text-race font-semibold">Failed to join: {joinError}</p>
+        </div>
+      )}
+
       {/* Active Quests */}
       {joined.length > 0 && (
         <div className="mt-3">
@@ -185,7 +198,7 @@ export default function ChallengesPage() {
             <span className="pl-seclabel">Your Active Quests</span>
           </div>
           <div className="px-[22px] flex flex-col gap-3">
-            {joined.map(c => <ChallengeCard key={c.id} c={c} onJoin={handleJoin} />)}
+            {joined.map(c => <ChallengeCard key={c.id} c={c} onJoin={handleJoin} joiningId={joiningId} />)}
           </div>
         </div>
       )}
@@ -197,7 +210,7 @@ export default function ChallengesPage() {
             <span className="pl-seclabel">Open to Join</span>
           </div>
           <div className="px-[22px] flex flex-col gap-3">
-            {available.map(c => <ChallengeCard key={c.id} c={c} onJoin={handleJoin} />)}
+            {available.map(c => <ChallengeCard key={c.id} c={c} onJoin={handleJoin} joiningId={joiningId} />)}
           </div>
         </div>
       )}
