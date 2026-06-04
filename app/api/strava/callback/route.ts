@@ -1,18 +1,30 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient, importStravaActivity, updateLeaderboardForUser } from '@/lib/strava'
-import { redirect } from 'next/navigation'
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+
+function redirectWithClearedState(url: URL | string, request: NextRequest): NextResponse {
+  const response = NextResponse.redirect(typeof url === 'string' ? new URL(url, request.url) : url)
+  response.cookies.delete('strava_oauth_state')
+  return response
+}
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) return NextResponse.redirect(new URL('/login', request.url))
 
   const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
-  const error = searchParams.get('error')
+  const code    = searchParams.get('code')
+  const error   = searchParams.get('error')
+  const state   = searchParams.get('state')
 
-  if (error || !code) redirect('/?strava=denied')
+  if (error || !code) return redirectWithClearedState('/?strava=denied', request)
+
+  // Validate CSRF state — must match the cookie set in the connect route
+  const storedState = request.cookies.get('strava_oauth_state')?.value
+  if (!state || !storedState || state !== storedState) {
+    return redirectWithClearedState('/?strava=error', request)
+  }
 
   // Exchange authorisation code for tokens
   const tokenRes = await fetch('https://www.strava.com/oauth/token', {
@@ -27,15 +39,17 @@ export async function GET(request: NextRequest) {
   })
 
   const tokenData = await tokenRes.json()
-  if (!tokenData.access_token) redirect('/?strava=error')
+  if (!tokenRes.ok || !tokenData.access_token) {
+    return redirectWithClearedState('/?strava=error', request)
+  }
 
   const svc = createServiceClient()
 
   // Persist tokens against the user row
   await svc.from('users').update({
-    strava_athlete_id: tokenData.athlete.id,
-    strava_access_token: tokenData.access_token,
-    strava_refresh_token: tokenData.refresh_token,
+    strava_athlete_id:       tokenData.athlete.id,
+    strava_access_token:     tokenData.access_token,
+    strava_refresh_token:    tokenData.refresh_token,
     strava_token_expires_at: tokenData.expires_at,
   }).eq('id', user.id)
 
@@ -46,7 +60,7 @@ export async function GET(request: NextRequest) {
     { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
   )
 
-  const activities = await activitiesRes.json()
+  const activities = activitiesRes.ok ? await activitiesRes.json() : []
   const { data: profile } = await svc.from('users').select('name').eq('id', user.id).single()
 
   let imported = 0
@@ -59,5 +73,5 @@ export async function GET(request: NextRequest) {
     await updateLeaderboardForUser(user.id, profile?.name ?? 'Runner', svc)
   }
 
-  redirect(`/?strava=connected&imported=${imported}`)
+  return redirectWithClearedState(`/?strava=connected&imported=${imported}`, request)
 }
