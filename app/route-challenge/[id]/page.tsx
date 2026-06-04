@@ -107,10 +107,14 @@ export default function RouteChallengeePage() {
 
       const [
         { data: ch },
-        { data: parts },
+        { data: myPart },
+        { data: allParts },
         { data: prof },
       ] = await Promise.all([
         supabase.from("challenges").select("title, description, participants, badge_reward").eq("id", id).single(),
+        // Explicit own-row check — guaranteed to work regardless of RLS SELECT policy
+        supabase.from("challenge_participants").select("progress").eq("challenge_id", id).eq("user_id", user.id).maybeSingle(),
+        // All participants for the runner list (may be limited by RLS to own row only)
         supabase.from("challenge_participants").select("user_id, progress").eq("challenge_id", id).order("progress", { ascending: false }),
         supabase.from("users").select("name, avatar_url").eq("id", user.id).single(),
       ])
@@ -119,6 +123,11 @@ export default function RouteChallengeePage() {
 
       if (!ch) { router.replace("/challenges"); return }
       setChallenge({ title: ch.title, description: ch.description, participants: ch.participants, badgeReward: ch.badge_reward })
+
+      if (myPart !== null && myPart !== undefined) {
+        setJoined(true)
+        setMyProgress(Number(myPart.progress))
+      }
 
       // Fetch route geometry from DB
       const { data: rc } = await supabase
@@ -145,14 +154,14 @@ export default function RouteChallengeePage() {
       })))
 
       // Fetch participant profiles
-      const partIds = (parts ?? []).map((p: { user_id: string }) => p.user_id)
+      const partIds = (allParts ?? []).map((p: { user_id: string }) => p.user_id)
       const { data: profiles } = partIds.length
         ? await supabase.from("users").select("id, name, avatar_url").in("id", partIds)
         : { data: [] }
 
       const profileMap = new Map((profiles ?? []).map((p: { id: string; name: string; avatar_url: string }) => [p.id, p]))
 
-      const mapped: Participant[] = (parts ?? []).map((p: { user_id: string; progress: number }) => ({
+      const mapped: Participant[] = (allParts ?? []).map((p: { user_id: string; progress: number }) => ({
         userId: p.user_id,
         name: profileMap.get(p.user_id)?.name ?? "Runner",
         avatarUrl: profileMap.get(p.user_id)?.avatar_url ?? null,
@@ -161,8 +170,6 @@ export default function RouteChallengeePage() {
       }))
 
       setParticipants(mapped)
-      const me = mapped.find(p => p.isMe)
-      if (me) { setJoined(true); setMyProgress(me.progress) }
       setLoading(false)
     }
     load()
@@ -176,15 +183,17 @@ export default function RouteChallengeePage() {
   const handleJoin = async () => {
     if (!userId || joining || joined) return
     setJoining(true)
-    await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
-    setJoined(true)
-    setParticipants(prev => [...prev, {
-      userId,
-      name: myProfile?.name ?? "You",
-      avatarUrl: myProfile?.avatarUrl ?? null,
-      progress: 0,
-      isMe: true,
-    }])
+    const { error } = await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
+    if (!error) {
+      setJoined(true)
+      setParticipants(prev => [...prev, {
+        userId,
+        name: myProfile?.name ?? "You",
+        avatarUrl: myProfile?.avatarUrl ?? null,
+        progress: 0,
+        isMe: true,
+      }])
+    }
     setJoining(false)
   }
 
