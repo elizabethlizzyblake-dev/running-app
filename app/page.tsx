@@ -15,7 +15,7 @@ import { AvatarCircle } from "@/components/avatar-circle"
 import { formatPace } from "@/lib/formatting"
 import { computeStreak } from "@/lib/achievements"
 import Link from "next/link"
-import { Map, Medal, Users, Zap } from "lucide-react"
+import { Map as MapIcon, Medal, Users, Zap } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -73,7 +73,7 @@ function LandingPage() {
           { icon: <Zap size={20} className="text-race" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
           { icon: <Users size={20} className="text-pine" />, title: 'Challenges', body: 'Join group quests and track progress together.' },
           { icon: <Medal size={20} className="text-[#E8A93C]" />, title: 'Earn badges', body: 'Unlock patches for milestones and streaks.' },
-          { icon: <Map size={20} className="text-ink-2" />, title: 'Route maps', body: 'Virtual routes like Norfolk Coastal Challenge.' },
+          { icon: <MapIcon size={20} className="text-ink-2" />, title: 'Route maps', body: 'Virtual routes like Norfolk Coastal Challenge.' },
         ].map((f) => (
           <div key={f.title} className="pl-card p-4">
             <div className="mb-2">{f.icon}</div>
