@@ -62,7 +62,6 @@ export default async function HomePage({
     { data: joined },
     { data: leaderboardEntry },
     { count: totalMembers },
-    { data: stravaProfile },
   ] = await Promise.all([
     supabase.from('users').select('*').eq('id', user.id).single(),
     supabase.from('runs').select('*').eq('user_id', user.id).gte('date', monthStart),
@@ -71,7 +70,6 @@ export default async function HomePage({
     supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
     supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').single(),
     supabase.from('users').select('*', { count: 'exact', head: true }),
-    supabase.from('users').select('strava_athlete_id').eq('id', user.id).single(),
   ])
 
   const progressMap = new Map((joined ?? []).map((j: { challenge_id: string; progress: number }) => [j.challenge_id, Number(j.progress)]))
@@ -87,8 +85,8 @@ export default async function HomePage({
   const streakDays = computeStreak((runs ?? []).map((r: { date: string }) => r.date))
   const progressPercent = (totalDistance / TARGET_DISTANCE) * 100
   const firstName = profile?.name?.split(' ')[0] ?? 'Runner'
+  const avatarUrl = profile?.avatar_url ?? null
   const rankChange = leaderboardEntry?.change ?? 0
-  const stravaConnected = !!stravaProfile?.strava_athlete_id
   const stravaJustConnected = params.strava === 'connected'
   const stravaImported = parseInt(params.imported ?? '0')
 
@@ -107,11 +105,20 @@ export default async function HomePage({
         </div>
       </div>
 
-      {/* Greeting */}
-      <div className="px-[22px] pt-[14px] pb-2">
+      {/* Greeting — tap to open profile */}
+      <Link href="/profile" className="block px-[22px] pt-[14px] pb-2">
         <div className="pl-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
-        <h1 className="pl-heading mt-2">Hey,<br />{firstName}</h1>
-      </div>
+        <div className="flex items-center gap-4 mt-2">
+          <div className="w-[52px] h-[52px] rounded-full bg-paper-2 border-2 border-line overflow-hidden flex-shrink-0 flex items-center justify-center">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="anton text-[20px] text-ink-3">{firstName[0]?.toUpperCase()}</span>
+            )}
+          </div>
+          <h1 className="pl-heading">Hey,<br />{firstName}</h1>
+        </div>
+      </Link>
 
       {/* Strava connected banner */}
       {stravaJustConnected && (
@@ -273,28 +280,6 @@ export default async function HomePage({
           </div>
         </div>
       )}
-
-      {/* Strava connect */}
-      <div className="px-[22px] pt-4">
-        {stravaConnected ? (
-          <div className="pl-card px-4 py-3 flex items-center gap-3">
-            <span className="text-lg">🟠</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-ink">Strava connected</p>
-              <p className="mono text-[10.5px] text-ink-3">Runs import automatically</p>
-            </div>
-          </div>
-        ) : (
-          <Link href="/api/strava/connect" className="pl-card px-4 py-3 flex items-center gap-3 block">
-            <span className="text-lg">🟠</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-ink">Connect Strava</p>
-              <p className="mono text-[10.5px] text-ink-3">Auto-import runs instead of logging manually</p>
-            </div>
-            <ChevronRight size={16} className="text-ink-3" />
-          </Link>
-        )}
-      </div>
 
       {/* Log CTA */}
       <div className="px-[22px] pt-3">
