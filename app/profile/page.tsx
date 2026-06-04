@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Camera, Check } from "lucide-react"
 import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
+import { AvatarCropModal } from "@/components/avatar-crop-modal"
 
 const LEVELS = [
   { key: "beginner", label: "Beginner", emoji: "🌱" },
@@ -22,8 +23,10 @@ export default function ProfilePage() {
   const [loading, setLoading]     = useState(true)
   const [saving, setSaving]       = useState(false)
   const [saved, setSaved]         = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [userId, setUserId]       = useState("")
+  const [uploading, setUploading]     = useState(false)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [imgBroken, setImgBroken]     = useState(false)
+  const [userId, setUserId]           = useState("")
 
   const [profile, setProfile] = useState({
     name:                 "",
@@ -67,16 +70,33 @@ export default function ProfilePage() {
     load()
   }, [router])
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !userId) return
+    if (!file) return
+    setPendingFile(file)
+    // Reset input so the same file can be re-selected
+    e.target.value = ""
+  }
+
+  const handleCropDone = async (blob: Blob) => {
+    setPendingFile(null)
+    if (!userId) return
     setUploading(true)
-    const ext = file.name.split(".").pop() ?? "jpg"
-    const path = `${userId}/avatar.${ext}`
-    await supabase.storage.from("avatars").upload(path, file, { upsert: true })
+    const path = `${userId}/avatar.jpg`
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(path, blob, { upsert: true, contentType: "image/jpeg" })
+    if (error) {
+      setUploading(false)
+      alert(`Upload failed: ${error.message}`)
+      return
+    }
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path)
-    setProfile(p => ({ ...p, avatar_url: publicUrl }))
-    await supabase.from("users").update({ avatar_url: publicUrl }).eq("id", userId)
+    // Bust the cache by appending a timestamp
+    const bustedUrl = `${publicUrl}?t=${Date.now()}`
+    setImgBroken(false)
+    setProfile(p => ({ ...p, avatar_url: bustedUrl }))
+    await supabase.from("users").update({ avatar_url: bustedUrl }).eq("id", userId)
     setUploading(false)
   }
 
@@ -100,6 +120,14 @@ export default function ProfilePage() {
   if (loading) return null
 
   return (
+    <>
+    {pendingFile && (
+      <AvatarCropModal
+        file={pendingFile}
+        onDone={handleCropDone}
+        onCancel={() => setPendingFile(null)}
+      />
+    )}
     <div className="min-h-screen bg-paper pb-[110px] pl-anim">
       <SettingsButton />
 
@@ -127,8 +155,13 @@ export default function ProfilePage() {
             onClick={() => fileRef.current?.click()}
             className="w-[88px] h-[88px] rounded-full bg-paper-2 border-2 border-line overflow-hidden flex items-center justify-center"
           >
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            {profile.avatar_url && !imgBroken ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={() => setImgBroken(true)}
+              />
             ) : (
               <span className="anton text-[34px] text-ink-3">
                 {profile.name?.[0]?.toUpperCase() ?? "?"}
@@ -141,7 +174,7 @@ export default function ProfilePage() {
           >
             {uploading ? <span className="mono text-[9px]">…</span> : <Camera size={13} />}
           </button>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
         </div>
         {joinedDate && (
           <p className="mono text-[10px] tracking-[0.1em] uppercase text-ink-3 mt-3">
@@ -275,5 +308,6 @@ export default function ProfilePage() {
 
       <PacelineNav active="" />
     </div>
+    </>
   )
 }
