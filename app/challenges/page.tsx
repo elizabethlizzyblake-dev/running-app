@@ -144,10 +144,7 @@ export default function ChallengesPage() {
     if (!userId) return
     const challenge = challenges.find(c => c.id === id)
     if (!challenge) return
-    await supabase.from('challenge_participants').upsert(
-      { user_id: userId, challenge_id: id, progress: 0 },
-      { onConflict: 'user_id,challenge_id' }
-    )
+    await supabase.from('challenge_participants').insert({ user_id: userId, challenge_id: id, progress: 0 })
     setChallenges(prev => prev.map(c =>
       c.id === id ? { ...c, joined: true, participants: c.participants + 1 } : c
     ))

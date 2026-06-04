@@ -176,10 +176,7 @@ export default function RouteChallengeePage() {
   const handleJoin = async () => {
     if (!userId || joining || joined) return
     setJoining(true)
-    await supabase.from("challenge_participants").upsert(
-      { user_id: userId, challenge_id: id, progress: 0 },
-      { onConflict: "user_id,challenge_id" }
-    )
+    await supabase.from("challenge_participants").insert({ user_id: userId, challenge_id: id, progress: 0 })
     setJoined(true)
     setParticipants(prev => [...prev, {
       userId,
