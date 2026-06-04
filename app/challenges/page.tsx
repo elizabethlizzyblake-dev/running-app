@@ -12,6 +12,9 @@ import {
   Check,
 } from "@/components/paceline-ui"
 
+import Link from "next/link"
+import { Map } from "lucide-react"
+
 type Challenge = {
   id: string
   title: string
@@ -24,6 +27,7 @@ type Challenge = {
   participants: number
   currentProgress: number
   joined: boolean
+  isRoute: boolean
 }
 
 function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => void }) {
@@ -68,14 +72,29 @@ function ChallengeCard({ c, onJoin }: { c: Challenge; onJoin: (id: string) => vo
             </span>
           </div>
           <PacelineProgress value={p} solid={done} height={10} />
+          {c.isRoute && (
+            <Link
+              href={`/route-challenge/${c.id}`}
+              className="mt-3 w-full flex items-center justify-center gap-2 py-[11px] rounded-[12px] bg-pine text-paper font-semibold text-[13.5px]"
+            >
+              <Map size={15} /> View route map
+            </Link>
+          )}
         </div>
       ) : (
-        <button
-          className="pl-btn pl-btn-dark mt-[14px]"
-          onClick={() => onJoin(c.id)}
-        >
-          Join quest
-        </button>
+        <div className="flex flex-col gap-2 mt-[14px]">
+          <button className="pl-btn pl-btn-dark" onClick={() => onJoin(c.id)}>
+            Join quest
+          </button>
+          {c.isRoute && (
+            <Link
+              href={`/route-challenge/${c.id}`}
+              className="w-full flex items-center justify-center gap-2 py-[11px] rounded-[12px] border border-line text-ink-2 font-semibold text-[13.5px]"
+            >
+              <Map size={15} /> Preview route
+            </Link>
+          )}
+        </div>
       )}
     </div>
   )
@@ -91,12 +110,14 @@ export default function ChallengesPage() {
       if (!user) return
       setUserId(user.id)
 
-      const [{ data: all }, { data: participations }] = await Promise.all([
+      const [{ data: all }, { data: participations }, { data: routes }] = await Promise.all([
         supabase.from('challenges').select('*').order('start_date'),
         supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
+        supabase.from('route_challenges').select('challenge_id'),
       ])
-      const progressMap = new Map((participations ?? []).map((p: { challenge_id: string; progress: number }) => [p.challenge_id, Number(p.progress)]))
-      const joinedIds = new Set((participations ?? []).map((p: { challenge_id: string }) => p.challenge_id))
+      const progressMap  = new Map((participations ?? []).map((p: { challenge_id: string; progress: number }) => [p.challenge_id, Number(p.progress)]))
+      const joinedIds    = new Set((participations ?? []).map((p: { challenge_id: string }) => p.challenge_id))
+      const routeIds     = new Set((routes ?? []).map((r: { challenge_id: string }) => r.challenge_id))
       setChallenges((all ?? []).map((c: {
         id: string; title: string; description: string
         start_date: string; end_date: string; target_metric: string
@@ -106,7 +127,9 @@ export default function ChallengesPage() {
         startDate: c.start_date, endDate: c.end_date,
         targetMetric: c.target_metric, targetValue: Number(c.target_value),
         badgeReward: c.badge_reward, participants: c.participants,
-        currentProgress: progressMap.get(c.id) ?? 0, joined: joinedIds.has(c.id),
+        currentProgress: progressMap.get(c.id) ?? 0,
+        joined: joinedIds.has(c.id),
+        isRoute: routeIds.has(c.id),
       })))
     }
     load()
