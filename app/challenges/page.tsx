@@ -145,7 +145,7 @@ export default function ChallengesPage() {
     const challenge = challenges.find(c => c.id === id)
     if (!challenge) return
     const { error } = await supabase.from('challenge_participants').insert({ user_id: userId, challenge_id: id, progress: 0 })
-    if (error) return
+    if (error) { alert(`Join error: ${error.message} [${error.code}]`); return }
     setChallenges(prev => prev.map(c =>
       c.id === id ? { ...c, joined: true, participants: c.participants + 1 } : c
     ))
