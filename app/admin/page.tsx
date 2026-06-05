@@ -60,23 +60,27 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('challenges').insert({
-      title: formData.title,
-      description: formData.description,
-      start_date: formData.startDate,
-      end_date: formData.endDate,
-      target_metric: formData.targetMetric,
-      target_value: parseFloat(formData.targetValue),
-      badge_reward: formData.badgeReward,
-      participants: 0,
-      current_progress: 0,
+    const res = await fetch('/api/admin/create-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: formData.title,
+        description: formData.description,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        targetMetric: formData.targetMetric,
+        targetValue: parseFloat(formData.targetValue),
+        badgeReward: formData.badgeReward,
+      }),
     })
     setSaving(false)
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      setFormData({ title: "", description: "", startDate: "", endDate: "", badgeReward: "", targetMetric: "distance", targetValue: "" })
-    }, 2000)
+    if (res.ok) {
+      setSubmitted(true)
+      setTimeout(() => {
+        setSubmitted(false)
+        setFormData({ title: "", description: "", startDate: "", endDate: "", badgeReward: "", targetMetric: "distance", targetValue: "" })
+      }, 2000)
+    }
   }
 
   if (checking) return null

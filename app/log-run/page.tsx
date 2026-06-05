@@ -13,8 +13,6 @@ import {
 } from "@/components/paceline-ui"
 import { runTypes } from "@/lib/mock-data"
 import { formatPace, calcPace } from "@/lib/formatting"
-import { checkAndAwardBadges } from "@/lib/achievements"
-import { updateChallengeProgress } from "@/lib/progress"
 import Link from "next/link"
 
 type FormData = {
@@ -95,40 +93,28 @@ export default function LogRunPage() {
       (parseInt(formData.minutes) || 0) + (parseInt(formData.seconds) || 0) / 60
     const pace = calcPace(distance, durationMin)
 
-    const { error: insertError } = await supabase.from('runs').insert({
-      user_id: userId,
-      date: formData.date,
-      distance,
-      duration: Math.round(durationMin),
-      pace,
-      type: formData.type,
-      notes: formData.notes || null,
+    const res = await fetch('/api/log-run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: formData.date,
+        distance,
+        minutes: parseInt(formData.minutes) || 0,
+        seconds: parseInt(formData.seconds) || 0,
+        type: formData.type,
+        notes: formData.notes,
+      }),
     })
 
-    if (insertError) {
-      setSubmitError(`Couldn't save your run — please try again. (${insertError.message})`)
+    const result = await res.json()
+
+    if (!res.ok) {
+      setSubmitError(`Couldn't save your run — please try again. (${result.error ?? res.status})`)
       setSubmitting(false)
       return
     }
 
-    const now = new Date()
-    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-
-    const { data: allRuns } = await supabase
-      .from('runs')
-      .select('distance, date')
-      .eq('user_id', userId)
-      .order('date')
-
-    const monthRuns = (allRuns ?? []).filter((r: { date: string }) => r.date >= monthStart)
-
-    await Promise.all([
-      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
-      updateChallengeProgress(supabase, userId),
-    ])
-
-    const newBadges = await checkAndAwardBadges(supabase, userId, allRuns ?? [])
-    setEarnedBadges(newBadges)
+    setEarnedBadges(result.badges ?? [])
     setSubmitting(false)
     setSubmitted(true)
   }
