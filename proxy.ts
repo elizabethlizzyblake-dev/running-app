@@ -21,9 +21,13 @@ export async function proxy(request: NextRequest) {
     }
   )
 
+  const { pathname } = request.nextUrl
+
+  // API routes handle their own auth — never redirect them
+  if (pathname.startsWith('/api/')) return supabaseResponse
+
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
   // Auth callback and reset-password must be reachable before a session exists
   const isPublic = pathname === '/' || pathname.startsWith('/auth/') || pathname.startsWith('/reset-password')
