@@ -206,7 +206,7 @@ export default function RouteChallengeePage() {
   const { totalKm, endLocation } = routeInfo
   const cur  = currentCheckpoint(myProgress, checkpoints)
   const next = nextCheckpoint(myProgress, checkpoints)
-  const pct  = (myProgress / totalKm) * 100
+  const pct  = totalKm > 0 ? (myProgress / totalKm) * 100 : 0
   const done = myProgress >= totalKm
 
   // Sort: others first (ascending progress), me last (always on top in SVG)

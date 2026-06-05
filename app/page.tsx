@@ -199,7 +199,7 @@ export default async function HomePage({
   const avatarUrl = profile?.avatar_url ?? null
   const rankChange = leaderboardEntry?.change ?? 0
   const stravaJustConnected = params.strava === 'connected'
-  const stravaImported = parseInt(params.imported ?? '0')
+  const stravaImported = Math.min(Math.max(parseInt(params.imported ?? '0') || 0, 0), 500)
 
   const lastRunDate   = (allRuns ?? [])[0]?.date ?? null
   const lastRunType   = (allRuns ?? [])[0]?.type ?? null
@@ -308,7 +308,7 @@ export default async function HomePage({
               {runsThisWeek} / {weeklyTarget} run{weeklyTarget !== 1 ? 's' : ''}
             </span>
           </div>
-          <PacelineProgress value={(runsThisWeek / weeklyTarget) * 100} height={8} />
+          <PacelineProgress value={weeklyTarget > 0 ? (runsThisWeek / weeklyTarget) * 100 : 0} height={8} />
           <p className="text-[12px] text-ink-3 mt-[8px]">
             {runsThisWeek >= weeklyTarget
               ? `Weekly goal hit! ${personaCfg?.emoji ?? '🎉'}`
@@ -386,7 +386,7 @@ export default async function HomePage({
               id: string; title: string; participants: number
               target_value: number; target_metric: string
             }) => {
-              const p = ((progressMap.get(c.id) ?? 0) / c.target_value) * 100
+              const p = c.target_value > 0 ? ((progressMap.get(c.id) ?? 0) / c.target_value) * 100 : 0
               return (
                 <div key={c.id} className="pl-card p-4">
                   <div className="flex justify-between items-center mb-3">
