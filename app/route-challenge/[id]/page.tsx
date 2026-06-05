@@ -112,7 +112,7 @@ export default function RouteChallengeePage() {
         { data: allParts },
         { data: prof },
       ] = await Promise.all([
-        supabase.from("challenges").select("title, description, participants, badge_reward").eq("id", id).single(),
+        supabase.from("challenges").select("title, description, participants, badge_reward").eq("id", id).maybeSingle(),
         // Explicit own-row check — guaranteed to work regardless of RLS SELECT policy
         supabase.from("challenge_participants").select("progress").eq("challenge_id", id).eq("user_id", user.id).maybeSingle(),
         // All participants for the runner list (may be limited by RLS to own row only)
@@ -135,7 +135,7 @@ export default function RouteChallengeePage() {
         .from("route_challenges")
         .select("id, total_distance_km, end_location")
         .eq("challenge_id", id)
-        .single()
+        .maybeSingle()
 
       if (!rc) { router.replace("/challenges"); return }
       setRouteInfo({ totalKm: rc.total_distance_km, endLocation: rc.end_location })

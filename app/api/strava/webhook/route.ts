@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   const { data: user } = await svc
     .from('users').select('id, name')
-    .eq('strava_athlete_id', ownerId).single()
+    .eq('strava_athlete_id', ownerId).maybeSingle()
 
   if (!user) return NextResponse.json({ ok: true })
 

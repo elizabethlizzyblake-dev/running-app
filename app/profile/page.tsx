@@ -334,7 +334,7 @@ export default function ProfilePage() {
             className="pl-input"
             placeholder="Paste a Spotify playlist link (optional)"
           />
-          {profile.spotify_playlist_url && (
+          {/^https?:\/\/(open\.spotify\.com|spotify\.link)/.test(profile.spotify_playlist_url) && (
             <a
               href={profile.spotify_playlist_url}
               target="_blank"

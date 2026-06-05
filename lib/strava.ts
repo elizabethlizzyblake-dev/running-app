@@ -119,7 +119,7 @@ export async function updateLeaderboardForUser(
   ] as const) {
     const { data: existing } = await svc
       .from('leaderboard_entries').select('id')
-      .eq('user_id', userId).eq('category', category).single()
+      .eq('user_id', userId).eq('category', category).maybeSingle()
 
     if (existing) {
       await svc.from('leaderboard_entries').update({ value }).eq('id', existing.id)

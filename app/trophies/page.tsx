@@ -11,7 +11,14 @@ import {
   ChevronDown,
 } from "@/components/paceline-ui"
 import { type MedalCategory } from "@/components/paceline-ui"
-import { availableBadges } from "@/lib/mock-data"
+const AVAILABLE_BADGES = [
+  { id: "b7",  name: "100K Legend",      category: "distance",    requirement: "100km total" },
+  { id: "b8",  name: "Marathon Master",  category: "distance",    requirement: "42.2km single run" },
+  { id: "b9",  name: "Month Streak",     category: "consistency", requirement: "30-day streak" },
+  { id: "b10", name: "Speed Demon",      category: "pace",        requirement: "5K < 25min" },
+  { id: "b11", name: "Pace Pusher",      category: "pace",        requirement: "30s pace improvement" },
+  { id: "b12", name: "Social Butterfly", category: "community",   requirement: "Join 5 challenges" },
+]
 
 type DbBadge = {
   id: string; name: string; description: string
@@ -52,7 +59,7 @@ export default function TrophiesPage() {
 
   const earnedIds = new Set(earnedBadges.map(b => b.name))
   const totalEarned = earnedBadges.length
-  const totalAvailable = totalEarned + availableBadges.length
+  const totalAvailable = totalEarned + AVAILABLE_BADGES.length
   const collectionPct = totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0
 
   return (
@@ -102,7 +109,7 @@ export default function TrophiesPage() {
         {badgeCategories.map(cat => {
           const categoryEarned = earnedBadges.filter(b => b.category === cat.key)
           const earnedNames = new Set(categoryEarned.map(b => b.name))
-          const categoryAvailable = availableBadges.filter(b => b.category === cat.key && !earnedNames.has(b.name))
+          const categoryAvailable = AVAILABLE_BADGES.filter(b => b.category === cat.key && !earnedNames.has(b.name))
           const allInCat = [...categoryEarned, ...categoryAvailable]
           if (!allInCat.length) return null
           const isOpen = open[cat.key]

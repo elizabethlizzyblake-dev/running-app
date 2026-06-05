@@ -11,8 +11,17 @@ import {
   MessageSquare,
   Check,
 } from "@/components/paceline-ui"
-import { runTypes } from "@/lib/mock-data"
 import { formatPace, calcPace } from "@/lib/formatting"
+import type { RunType } from "@/lib/types"
+
+const RUN_TYPES: { value: RunType; label: string; description: string }[] = [
+  { value: "easy",     label: "Easy Run",   description: "Relaxed pace, conversational" },
+  { value: "tempo",    label: "Tempo Run",  description: "Comfortably hard pace" },
+  { value: "interval", label: "Intervals",  description: "Speed work with recovery" },
+  { value: "long",     label: "Long Run",   description: "Building endurance" },
+  { value: "race",     label: "Race",       description: "Competition day" },
+  { value: "recovery", label: "Recovery",   description: "Very easy, active recovery" },
+]
 import Link from "next/link"
 
 type FormData = {
@@ -268,7 +277,7 @@ export default function LogRunPage() {
             <Sparkles size={14} /> Type of run
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {runTypes.map((t) => (
+            {RUN_TYPES.map((t) => (
               <button
                 key={t.value}
                 type="button"
