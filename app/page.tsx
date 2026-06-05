@@ -128,10 +128,9 @@ function streakMessage(streak: number): string {
 
 function getWeekStart(): string {
   const now = new Date()
-  const day = now.getDay()
+  const day = now.getUTCDay()
   const daysBack = day === 0 ? 6 : day - 1
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - daysBack)
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysBack))
   return monday.toISOString().split('T')[0]
 }
 

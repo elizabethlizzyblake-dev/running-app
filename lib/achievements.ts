@@ -77,12 +77,12 @@ export const AUTO_BADGES: BadgeDefinition[] = [
  */
 export function computeStreak(dates: string[]): number {
   const dateSet = new Set(dates)
-  const today = new Date()
+  const now = new Date()
   let streak = 0
   for (let i = 0; i < 60; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    if (dateSet.has(d.toISOString().split('T')[0])) streak++
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i))
+    const key = d.toISOString().split('T')[0]
+    if (dateSet.has(key)) streak++
     else break
   }
   return streak

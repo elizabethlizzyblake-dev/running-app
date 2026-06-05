@@ -26,7 +26,11 @@ export async function refreshStravaToken(userId: string, svc: ServiceClient) {
     }),
   })
 
+  if (!res.ok) throw new Error(`Strava token refresh failed: ${res.status}`)
+
   const tokens = await res.json()
+  if (!tokens.access_token) throw new Error('Strava token refresh returned no access_token')
+
   await svc.from('users').update({
     strava_access_token: tokens.access_token,
     strava_refresh_token: tokens.refresh_token,

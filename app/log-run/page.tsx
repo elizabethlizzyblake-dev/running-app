@@ -57,7 +57,7 @@ export default function LogRunPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState<FormData>({
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'),
     distance: '',
     minutes: '',
     seconds: '',
@@ -139,7 +139,7 @@ export default function LogRunPage() {
     setValidationError(null)
     setSubmitError(null)
     setFormData({
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toLocaleDateString('en-CA'),
       distance: '',
       minutes: '',
       seconds: '',
@@ -215,7 +215,7 @@ export default function LogRunPage() {
             type="date"
             value={formData.date}
             onChange={(e) => set('date', e.target.value)}
-            max={new Date().toISOString().split('T')[0]}
+            max={new Date().toLocaleDateString('en-CA')}
             className="pl-input"
           />
         </div>
