@@ -7,7 +7,6 @@ import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import Link from "next/link"
 import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
 import { formatPace, formatDuration, formatDate, formatMonth } from "@/lib/formatting"
-import { updateChallengeProgress } from "@/lib/progress"
 import type { Run, RunType } from "@/lib/types"
 
 const TYPE_OPTIONS: { value: RunType; label: string }[] = [
@@ -210,23 +209,19 @@ export default function RunsPage() {
   }, [router])
 
   const handleSave = async (id: string, updates: Partial<Run>) => {
-    await supabase.from('runs').update(updates).eq('id', id).eq('user_id', userId)
+    await fetch(`/api/runs/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
     setRuns(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
     setEditRun(null)
-    if (userId) await Promise.all([
-      updateChallengeProgress(supabase, userId),
-      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
-    ])
   }
 
   const handleDelete = async (id: string) => {
-    await supabase.from('runs').delete().eq('id', id).eq('user_id', userId)
+    await fetch(`/api/runs/${id}`, { method: 'DELETE' })
     setRuns(prev => prev.filter(r => r.id !== id))
     setEditRun(null)
-    if (userId) await Promise.all([
-      updateChallengeProgress(supabase, userId),
-      fetch('/api/recalculate-leaderboard', { method: 'POST' }),
-    ])
   }
 
   if (loading) return null
