@@ -9,14 +9,15 @@ import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
 import { AvatarCropModal } from "@/components/avatar-crop-modal"
 import { AvatarCircle, PRESETS } from "@/components/avatar-circle"
 import { PERSONA_CONFIG } from "@/lib/onboarding"
-import type { Persona } from "@/lib/types"
+import type { Persona, RunningLevel } from "@/lib/types"
 
-const LEVELS = [
-  { key: "beginner", label: "Beginner", emoji: "🌱" },
-  { key: "5k",       label: "5K",       emoji: "⚡" },
-  { key: "10k",      label: "10K",      emoji: "🏃" },
-  { key: "half",     label: "Half",     emoji: "🥈" },
-  { key: "marathon", label: "Marathon", emoji: "🏆" },
+const LEVELS: { key: RunningLevel; label: string; emoji: string }[] = [
+  { key: "none",          label: "Just starting", emoji: "🌱" },
+  { key: "couch_to_5k",  label: "Couch to 5K",   emoji: "🚶" },
+  { key: "5k_runner",    label: "5K",             emoji: "⚡" },
+  { key: "10k_training", label: "10K",            emoji: "🏃" },
+  { key: "half_marathon",label: "Half",           emoji: "🥈" },
+  { key: "marathon",     label: "Marathon",       emoji: "🏆" },
 ]
 
 export default function ProfilePage() {

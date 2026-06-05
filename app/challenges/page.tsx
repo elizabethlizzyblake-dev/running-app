@@ -148,10 +148,15 @@ export default function ChallengesPage() {
     if (!userId || joiningId) return
     setJoinError(null)
     setJoiningId(id)
-    const { error } = await supabase.from('challenge_participants').insert({ user_id: userId, challenge_id: id })
+    const res = await fetch('/api/join-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challengeId: id }),
+    })
     setJoiningId(null)
-    if (error) {
-      setJoinError(`${error.message} [${error.code}]`)
+    if (!res.ok) {
+      const data = await res.json()
+      setJoinError(data.error ?? 'Failed to join challenge')
       return
     }
     setChallenges(prev => prev.map(c =>
