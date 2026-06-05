@@ -64,18 +64,18 @@ type StravaActivity = {
   type: string
 }
 
-const RUN_TYPES = ['Run', 'TrailRun', 'VirtualRun']
+const RUN_SPORT_TYPES = ['Run', 'TrailRun', 'VirtualRun']
 
 export async function importStravaActivity(
   activity: StravaActivity,
   userId: string,
   svc: ServiceClient
 ): Promise<boolean> {
-  if (!RUN_TYPES.includes(activity.sport_type ?? activity.type)) return false
+  if (!RUN_SPORT_TYPES.includes(activity.sport_type ?? activity.type)) return false
 
-  const distanceKm = Math.round(activity.distance / 100) / 10
+  const distanceKm  = Math.round(activity.distance / 100) / 10
   const durationMin = Math.round(activity.moving_time / 60)
-  const paceMinKm = distanceKm > 0
+  const paceMinKm   = distanceKm > 0
     ? Math.round((durationMin / distanceKm) * 100) / 100
     : 0
   const date = activity.start_date_local.split('T')[0]
@@ -92,57 +92,4 @@ export async function importStravaActivity(
   }, { onConflict: 'strava_activity_id', ignoreDuplicates: true })
 
   return !error
-}
-
-export async function updateLeaderboardForUser(
-  userId: string,
-  userName: string,
-  svc: ServiceClient
-) {
-  const now = new Date()
-  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-
-  const { data: monthRuns } = await svc
-    .from('runs').select('distance')
-    .eq('user_id', userId).gte('date', monthStart)
-
-  if (!monthRuns) return
-
-  const totalDistance = Math.round(monthRuns.reduce((s, r) => s + Number(r.distance), 0) * 10) / 10
-  const totalRuns = monthRuns.length
-  const longestRun = Math.round(monthRuns.reduce((m, r) => Math.max(m, Number(r.distance)), 0) * 10) / 10
-
-  for (const [category, value] of [
-    ['distance', totalDistance],
-    ['runs', totalRuns],
-    ['longest', longestRun],
-  ] as const) {
-    const { data: existing } = await svc
-      .from('leaderboard_entries').select('id')
-      .eq('user_id', userId).eq('category', category).maybeSingle()
-
-    if (existing) {
-      await svc.from('leaderboard_entries').update({ value }).eq('id', existing.id)
-    } else {
-      const { count } = await svc
-        .from('leaderboard_entries').select('*', { count: 'exact', head: true })
-        .eq('category', category)
-      await svc.from('leaderboard_entries').insert({
-        user_id: userId, user_name: userName, category,
-        rank: (count ?? 0) + 1, value, change: 0,
-      })
-    }
-
-    // Re-rank entire category
-    const { data: entries } = await svc
-      .from('leaderboard_entries').select('id, rank, value')
-      .eq('category', category).order('value', { ascending: false })
-    if (entries) {
-      await Promise.all(entries.map((e, i) =>
-        svc.from('leaderboard_entries')
-          .update({ rank: i + 1, change: e.rank - (i + 1) })
-          .eq('id', e.id)
-      ))
-    }
-  }
 }

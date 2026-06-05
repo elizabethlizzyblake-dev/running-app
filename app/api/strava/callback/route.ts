@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { createServiceClient, importStravaActivity, updateLeaderboardForUser } from '@/lib/strava'
+import { createServiceClient, importStravaActivity } from '@/lib/strava'
 import { NextResponse, type NextRequest } from 'next/server'
 
 function redirectWithClearedState(url: URL | string, request: NextRequest): NextResponse {
@@ -61,16 +61,11 @@ export async function GET(request: NextRequest) {
   )
 
   const activities = activitiesRes.ok ? await activitiesRes.json() : []
-  const { data: profile } = await svc.from('users').select('name').eq('id', user.id).single()
 
   let imported = 0
   for (const activity of Array.isArray(activities) ? activities : []) {
     const ok = await importStravaActivity(activity, user.id, svc)
     if (ok) imported++
-  }
-
-  if (imported > 0) {
-    await updateLeaderboardForUser(user.id, profile?.name ?? 'Runner', svc)
   }
 
   return redirectWithClearedState(`/?strava=connected&imported=${imported}`, request)

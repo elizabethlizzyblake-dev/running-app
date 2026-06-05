@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { createServiceClient, updateLeaderboardForUser } from "@/lib/strava"
+import { createServiceClient } from "@/lib/strava"
 import { updateChallengeProgress } from "@/lib/progress"
 import { checkAndAwardBadges } from "@/lib/achievements"
 import { calcPace } from "@/lib/formatting"
@@ -50,19 +50,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
 
-  // All subsequent steps use the service client so they bypass RLS where needed
   const svc = createServiceClient()
-
-  const { data: profile } = await svc
-    .from("users").select("name").eq("id", user.id).single()
-
   const { data: allRuns } = await svc
     .from("runs").select("distance, date").eq("user_id", user.id).order("date")
 
-  await Promise.all([
-    updateLeaderboardForUser(user.id, profile?.name ?? "Runner", svc),
-    updateChallengeProgress(supabase, user.id),
-  ])
+  // Challenge progress still needs explicit update; leaderboard is now live via SQL function
+  await updateChallengeProgress(supabase, user.id)
 
   const newBadges = await checkAndAwardBadges(supabase, user.id, allRuns ?? [])
 

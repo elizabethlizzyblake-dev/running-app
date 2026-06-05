@@ -7,7 +7,6 @@ import {
   PacelineNav,
   SettingsButton,
   Flame,
-  TrendingUp,
   ChevronRight,
   Trophy,
 } from "@/components/paceline-ui"
@@ -162,7 +161,7 @@ export default async function HomePage({
     { data: badges },
     { data: allChallenges },
     { data: joined },
-    { data: leaderboardEntry },
+    { data: leaderboardRows },
     { count: totalMembers },
   ] = await Promise.all([
     supabase.from('users').select('*').eq('id', user.id).single(),
@@ -172,9 +171,13 @@ export default async function HomePage({
     supabase.from('badges').select('*').eq('user_id', user.id).order('earned_date', { ascending: false }).limit(5),
     supabase.from('challenges').select('*'),
     supabase.from('challenge_participants').select('challenge_id, progress').eq('user_id', user.id),
-    supabase.from('leaderboard_entries').select('rank, change').eq('user_id', user.id).eq('category', 'distance').maybeSingle(),
+    supabase.rpc('get_leaderboard', { p_category: 'distance', p_month_start: monthStart }),
     supabase.from('users').select('*', { count: 'exact', head: true }),
   ])
+
+  const leaderboardEntry = (leaderboardRows ?? []).find(
+    (r: { user_id: string }) => r.user_id === user.id
+  )
 
   // Redirect to onboarding if not yet completed
   if (profile && !profile.onboarding_completed) redirect('/onboarding')
@@ -196,7 +199,6 @@ export default async function HomePage({
   const progressPercent = (totalDistance / TARGET_DISTANCE) * 100
   const firstName = profile?.name?.split(' ')[0] ?? 'Runner'
   const avatarUrl = profile?.avatar_url ?? null
-  const rankChange = leaderboardEntry?.change ?? 0
   const stravaJustConnected = params.strava === 'connected'
   const stravaImported = Math.min(Math.max(parseInt(params.imported ?? '0') || 0, 0), 500)
 
@@ -360,11 +362,6 @@ export default async function HomePage({
               <span className="mono text-xs text-ink-3">of {totalMembers ?? 0}</span>
             </div>
           </div>
-          {rankChange > 0 && (
-            <span className="pl-pill pl-pill-race">
-              <TrendingUp size={13} /> +{rankChange}
-            </span>
-          )}
         </Link>
       </div>
 

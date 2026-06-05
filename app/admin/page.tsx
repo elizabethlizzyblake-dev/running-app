@@ -44,9 +44,12 @@ export default function AdminPage() {
 
       setChecking(false)
 
+      const now = new Date()
+      const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`
+
       const [{ data: distanceEntries }, { data: runEntries }] = await Promise.all([
-        supabase.from('leaderboard_entries').select('user_id, user_name, value').eq('category', 'distance').order('value', { ascending: false }),
-        supabase.from('leaderboard_entries').select('user_id, value').eq('category', 'runs'),
+        supabase.rpc('get_leaderboard', { p_category: 'distance', p_month_start: monthStart }),
+        supabase.rpc('get_leaderboard', { p_category: 'runs',     p_month_start: monthStart }),
       ])
       const runsMap = new Map((runEntries ?? []).map((r: { user_id: string; value: number }) => [r.user_id, Number(r.value)]))
       setMembers((distanceEntries ?? []).map((d: { user_id: string; user_name: string; value: number }) => ({

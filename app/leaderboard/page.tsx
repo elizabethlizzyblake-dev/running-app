@@ -6,15 +6,12 @@ import {
   PacelineMedal,
   PacelineNav,
   SettingsButton,
-  TrendingUp,
-  TrendingDown,
-  ChevronRight,
 } from "@/components/paceline-ui"
 import { type MedalCategory } from "@/components/paceline-ui"
 
 type Entry = {
-  id: string; rank: number; userId: string
-  userName: string; value: number; change: number
+  rank: number; userId: string
+  userName: string; value: number
 }
 
 const leaderTabs = [
@@ -36,16 +33,23 @@ export default function LeaderboardPage() {
       if (!user) return
       setCurrentUserId(user.id)
 
-      const { data: rows } = await supabase.from('leaderboard_entries').select('*').order('rank')
-      const grouped: Record<string, Entry[]> = {}
-      for (const row of rows ?? []) {
-        if (!grouped[row.category]) grouped[row.category] = []
-        grouped[row.category].push({
-          id: row.id, rank: row.rank, userId: row.user_id,
-          userName: row.user_name, value: Number(row.value), change: row.change,
-        })
-      }
-      setData(grouped)
+      const now = new Date()
+      const monthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`
+
+      const [{ data: distance }, { data: runs }, { data: longest }] = await Promise.all([
+        supabase.rpc('get_leaderboard', { p_category: 'distance', p_month_start: monthStart }),
+        supabase.rpc('get_leaderboard', { p_category: 'runs',     p_month_start: monthStart }),
+        supabase.rpc('get_leaderboard', { p_category: 'longest',  p_month_start: monthStart }),
+      ])
+
+      const toEntries = (rows: { user_id: string; user_name: string; value: number; rank: number }[] | null): Entry[] =>
+        (rows ?? []).map(r => ({ rank: Number(r.rank), userId: r.user_id, userName: r.user_name, value: Number(r.value) }))
+
+      setData({
+        distance: toEntries(distance),
+        runs:     toEntries(runs),
+        longest:  toEntries(longest),
+      })
     }
     load()
   }, [])
@@ -132,7 +136,7 @@ export default function LeaderboardPage() {
         {rest.map(row => {
           const me = row.userId === currentUserId
           return (
-            <div key={row.id} className={`pl-lrow ${me ? 'pl-lrow-me' : ''}`}>
+            <div key={row.userId} className={`pl-lrow ${me ? 'pl-lrow-me' : ''}`}>
               <div className="pl-rank">{row.rank}</div>
               <div className="pl-avatar">
                 {row.userName.split(" ").map((n: string) => n[0]).join("")}
@@ -143,19 +147,6 @@ export default function LeaderboardPage() {
               </div>
               <span className="mono text-sm font-semibold">{row.value}</span>
               <span className="mono text-[10px] text-ink-3 w-[26px]">{active.unit}</span>
-              <div className="w-7 flex justify-end">
-                {row.change > 0 ? (
-                  <span className="mono text-[11px] text-pine flex items-center gap-[2px]">
-                    <TrendingUp size={12} />{row.change}
-                  </span>
-                ) : row.change < 0 ? (
-                  <span className="mono text-[11px] text-race flex items-center gap-[2px]">
-                    <TrendingDown size={12} />{Math.abs(row.change)}
-                  </span>
-                ) : (
-                  <ChevronRight size={0} />
-                )}
-              </div>
             </div>
           )
         })}

@@ -1,30 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-/** Re-rank every entry in a category by value descending, tracking movement. */
-export async function rerankCategory(
-  supabase: SupabaseClient,
-  category: string
-): Promise<void> {
-  const { data: entries } = await supabase
-    .from('leaderboard_entries')
-    .select('id, rank, value')
-    .eq('category', category)
-    .order('value', { ascending: false })
-
-  if (!entries) return
-
-  await Promise.all(
-    entries.map((entry: { id: string; rank: number; value: number }, index: number) => {
-      const newRank = index + 1
-      const change = entry.rank - newRank
-      return supabase
-        .from('leaderboard_entries')
-        .update({ rank: newRank, change })
-        .eq('id', entry.id)
-    })
-  )
-}
-
 type ChallengeRow = {
   challenge_id: string
   challenges: {

@@ -1,4 +1,4 @@
-import { createServiceClient, getValidStravaToken, importStravaActivity, updateLeaderboardForUser } from '@/lib/strava'
+import { createServiceClient, getValidStravaToken, importStravaActivity } from '@/lib/strava'
 import { type NextRequest, NextResponse } from 'next/server'
 
 // Strava pings this with a GET to verify the endpoint during webhook registration
@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
   const activity = await activityRes.json()
   const imported = await importStravaActivity(activity, user.id, svc)
 
-  if (imported) {
-    await updateLeaderboardForUser(user.id, user.name ?? 'Runner', svc)
-  }
+  // Leaderboard rankings are now derived live via get_leaderboard() SQL function.
+  // No write needed after import.
+  void imported
 
   return NextResponse.json({ ok: true })
 }
