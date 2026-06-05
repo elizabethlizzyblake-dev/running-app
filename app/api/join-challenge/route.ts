@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { writeFeedEvent } from "@/lib/feed"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -28,14 +29,19 @@ export async function POST(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Keep the denormalised participants counter in sync
+  // Keep the denormalised participants counter in sync, and fetch title for feed event
   const { data: challenge } = await supabase
-    .from("challenges").select("participants").eq("id", challengeId).maybeSingle()
+    .from("challenges").select("participants, title").eq("id", challengeId).maybeSingle()
   if (challenge) {
     await supabase
       .from("challenges")
       .update({ participants: (challenge.participants ?? 0) + 1 })
       .eq("id", challengeId)
+
+    await writeFeedEvent(supabase, user.id, 'challenge_joined', {
+      challenge_id: challengeId,
+      challenge_title: challenge.title,
+    })
   }
 
   return NextResponse.json({ ok: true })

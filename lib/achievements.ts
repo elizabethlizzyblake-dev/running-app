@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BadgeCategory } from '@/lib/types'
+import { writeFeedEvent } from '@/lib/feed'
 
 export type BadgeRun = { distance: number; date: string }
 
@@ -120,6 +121,16 @@ export async function checkAndAwardBadges(
         requirement: b.requirement,
         earned_date: today,
       }))
+    )
+
+    await Promise.all(
+      newBadges.map((b) =>
+        writeFeedEvent(supabase, userId, 'badge_earned', {
+          badge_name: b.name,
+          badge_icon: b.icon,
+          badge_description: b.description,
+        })
+      )
     )
   }
 

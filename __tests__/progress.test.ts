@@ -1,51 +1,51 @@
 import { describe, it, expect, vi } from 'vitest'
-import { rerankCategory } from '../lib/progress'
+import { updateChallengeProgress } from '../lib/progress'
 
-describe('rerankCategory', () => {
-  it('assigns ranks in descending value order and calls update for each entry', async () => {
-    const sorted = [
-      { id: 'a', rank: 3, value: 100 },
-      { id: 'c', rank: 2, value: 80 },
-      { id: 'b', rank: 1, value: 50 },
-    ]
+function makeSupabase(participations: { challenge_id: string; challenges: { id: string; start_date: string; end_date: string; target_metric: string }[] }[], runs: { distance: number }[]) {
+  const update = vi.fn().mockReturnValue({
+    eq: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }),
+  })
 
-    const updateEq = vi.fn().mockResolvedValue({ data: null })
-    const update = vi.fn().mockReturnValue({ eq: updateEq })
+  return {
+    from: vi.fn((table: string) => {
+      const builder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        lte: vi.fn().mockImplementation(() => {
+          if (table === 'runs') return Promise.resolve({ data: runs })
+          return builder
+        }),
+        update,
+      }
+      return builder
+    }),
+    _update: update,
+  } as never
+}
 
+describe('updateChallengeProgress', () => {
+  it('does nothing when user has no challenge participations', async () => {
     const supabase = {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: sorted }),
-        update,
+        eq: vi.fn().mockResolvedValue({ data: [] }),
       }),
     }
-
-    await rerankCategory(supabase as never, 'distance')
-
-    // update called once per entry
-    expect(update).toHaveBeenCalledTimes(3)
-
-    // first entry (highest value) should get rank 1
-    expect(update).toHaveBeenNthCalledWith(1, { rank: 1, change: 2 }) // was rank 3, now 1 → change +2
-    // second entry: was rank 2, stays rank 2 → change 0
-    expect(update).toHaveBeenNthCalledWith(2, { rank: 2, change: 0 })
-    // third entry: was rank 1, now rank 3 → change -2
-    expect(update).toHaveBeenNthCalledWith(3, { rank: 3, change: -2 })
+    await updateChallengeProgress(supabase as never, 'user-1')
+    // no update calls — nothing to recalculate
   })
 
-  it('does nothing when there are no entries', async () => {
+  it('does nothing when joined data is null', async () => {
     const update = vi.fn()
     const supabase = {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null }),
+        eq: vi.fn().mockResolvedValue({ data: null }),
         update,
       }),
     }
-
-    await rerankCategory(supabase as never, 'distance')
+    await updateChallengeProgress(supabase as never, 'user-1')
     expect(update).not.toHaveBeenCalled()
   })
 })

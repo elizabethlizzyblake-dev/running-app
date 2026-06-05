@@ -3,6 +3,8 @@ import { createServiceClient } from "@/lib/strava"
 import { updateChallengeProgress } from "@/lib/progress"
 import { checkAndAwardBadges } from "@/lib/achievements"
 import { calcPace } from "@/lib/formatting"
+import { validateRunInput } from "@/lib/validation"
+import { writeFeedEvent } from "@/lib/feed"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -26,11 +28,9 @@ export async function POST(req: Request) {
 
   const { date, distance, minutes, seconds, type, notes } = body
 
-  if (!date || !distance || distance <= 0) {
-    return NextResponse.json({ error: "Invalid run data" }, { status: 400 })
-  }
-  if ((minutes <= 0 && seconds <= 0) || seconds < 0 || seconds > 59) {
-    return NextResponse.json({ error: "Invalid duration" }, { status: 400 })
+  const validation = validateRunInput({ date, distance, minutes, seconds })
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 })
   }
 
   const durationMin = minutes + seconds / 60
@@ -49,6 +49,13 @@ export async function POST(req: Request) {
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 })
   }
+
+  await writeFeedEvent(supabase, user.id, 'run_logged', {
+    distance_km: distance,
+    duration_min: Math.round(durationMin),
+    type,
+    pace,
+  })
 
   const svc = createServiceClient()
   const { data: allRuns } = await svc

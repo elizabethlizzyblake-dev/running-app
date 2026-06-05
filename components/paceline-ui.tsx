@@ -149,7 +149,7 @@ export function PacelineProgress({
 // Bottom Navigation
 const navItems = [
   { href: "/", icon: Home, label: "Home" },
-  { href: "/trophies", icon: Trophy, label: "Cabinet" },
+  { href: "/feed", icon: Users, label: "Feed" },
   { href: "/challenges", icon: Target, label: "Quests" },
   { href: "/leaderboard", icon: BarChart3, label: "Leaders" },
 ]
