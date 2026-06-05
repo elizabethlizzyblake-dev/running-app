@@ -57,7 +57,7 @@ export default function AdminPage() {
     init()
   }, [router])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSaving(true)
     await supabase.from('challenges').insert({
@@ -183,8 +183,8 @@ export default function AdminPage() {
                   } else {
                     setWebhookStatus(JSON.stringify(data))
                   }
-                } catch {
-                  setWebhookStatus('Failed — check env vars.')
+                } catch (e) {
+                  setWebhookStatus(`Error: ${e instanceof Error ? e.message : String(e)}`)
                 }
                 setWebhookRegistering(false)
               }}
@@ -204,10 +204,10 @@ export default function AdminPage() {
                   if (sub?.id) {
                     setWebhookStatus(`Active subscription ID: ${sub.id} — add this as STRAVA_WEBHOOK_SUBSCRIPTION_ID in Vercel.`)
                   } else {
-                    setWebhookStatus('No active subscription found.')
+                    setWebhookStatus(`No active subscription found. Raw response: ${JSON.stringify(data)}`)
                   }
-                } catch {
-                  setWebhookStatus('Failed — check env vars.')
+                } catch (e) {
+                  setWebhookStatus(`Error: ${e instanceof Error ? e.message : String(e)}`)
                 }
                 setWebhookRegistering(false)
               }}
