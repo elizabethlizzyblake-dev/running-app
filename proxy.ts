@@ -25,8 +25,8 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup')
-  // / is the public landing page — unauthenticated users see it, authenticated see the dashboard
-  const isPublic = pathname === '/'
+  // Auth callback and reset-password must be reachable before a session exists
+  const isPublic = pathname === '/' || pathname.startsWith('/auth/') || pathname.startsWith('/reset-password')
 
   if (!user && !isAuthPage && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
