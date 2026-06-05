@@ -21,30 +21,52 @@ export type ReactionGroup = {
   hasReacted: boolean
 }
 
+export type Comment = {
+  id: string
+  feed_event_id: string
+  user_id: string
+  text: string
+  created_at: string
+  users: { name: string; avatar_url: string | null } | null
+}
+
 export default async function FeedPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: rawEvents } = await supabase
-    .from('feed_events')
-    .select('id, user_id, event_type, data, created_at, users(name, avatar_url)')
-    .order('created_at', { ascending: false })
-    .limit(50)
+  const [eventsRes, profileRes] = await Promise.all([
+    supabase
+      .from('feed_events')
+      .select('id, user_id, event_type, data, created_at, users(name, avatar_url)')
+      .order('created_at', { ascending: false })
+      .limit(50),
+    supabase
+      .from('users')
+      .select('name, avatar_url')
+      .eq('id', user.id)
+      .single(),
+  ])
 
-  const events = (rawEvents ?? []) as unknown as FeedEvent[]
+  const events = (eventsRes.data ?? []) as unknown as FeedEvent[]
+  const profile = profileRes.data
 
   const eventIds = events.map(e => e.id)
-  const { data: allReactions } = eventIds.length
-    ? await supabase
-        .from('reactions')
-        .select('id, feed_event_id, user_id, emoji')
-        .in('feed_event_id', eventIds)
-    : { data: [] }
+
+  const [reactionsRes, commentsRes] = await Promise.all(
+    eventIds.length
+      ? [
+          supabase.from('reactions').select('id, feed_event_id, user_id, emoji').in('feed_event_id', eventIds),
+          supabase.from('comments').select('id, feed_event_id, user_id, text, created_at, users(name, avatar_url)').in('feed_event_id', eventIds).order('created_at', { ascending: true }),
+        ]
+      : [{ data: [] }, { data: [] }]
+  )
 
   const reactionMap = new Map<string, ReactionGroup[]>()
+  const commentMap = new Map<string, Comment[]>()
+
   for (const ev of events) {
-    const evReactions = (allReactions ?? []).filter(r => r.feed_event_id === ev.id)
+    const evReactions = (reactionsRes.data ?? []).filter(r => r.feed_event_id === ev.id)
     const grouped = new Map<string, { count: number; hasReacted: boolean }>()
     for (const r of evReactions) {
       const prev = grouped.get(r.emoji) ?? { count: 0, hasReacted: false }
@@ -54,6 +76,7 @@ export default async function FeedPage() {
       })
     }
     reactionMap.set(ev.id, Array.from(grouped.entries()).map(([emoji, g]) => ({ emoji, ...g })))
+    commentMap.set(ev.id, (commentsRes.data ?? []).filter(c => c.feed_event_id === ev.id) as unknown as Comment[])
   }
 
   return (
@@ -80,7 +103,10 @@ export default async function FeedPage() {
               key={event.id}
               event={event}
               currentUserId={user.id}
+              currentUserName={profile?.name ?? ''}
+              currentUserAvatar={profile?.avatar_url ?? null}
               initialReactions={reactionMap.get(event.id) ?? []}
+              initialComments={commentMap.get(event.id) ?? []}
             />
           ))
         )}

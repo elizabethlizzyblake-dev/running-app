@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { AvatarCircle } from "@/components/avatar-circle"
 import { formatPace, formatDistance, formatDuration } from "@/lib/formatting"
-import type { FeedEvent, ReactionGroup } from "./page"
+import { Send } from "lucide-react"
+import type { FeedEvent, ReactionGroup, Comment } from "./page"
 import type { RunLoggedData, BadgeEarnedData, ChallengeJoinedData } from "@/lib/feed"
 
 const EMOJIS = ['🔥', '💪', '👏', '❤️']
@@ -79,21 +80,27 @@ const EVENT_VERB: Record<string, string> = {
 interface Props {
   event: FeedEvent
   currentUserId: string
+  currentUserName: string
+  currentUserAvatar: string | null
   initialReactions: ReactionGroup[]
+  initialComments: Comment[]
 }
 
-export function FeedCard({ event, currentUserId, initialReactions }: Props) {
+export function FeedCard({ event, currentUserId, currentUserName, currentUserAvatar, initialReactions, initialComments }: Props) {
   const [reactions, setReactions] = useState<ReactionGroup[]>(initialReactions)
-  const [pending, setPending] = useState<string | null>(null)
+  const [pendingEmoji, setPendingEmoji] = useState<string | null>(null)
+  const [comments, setComments] = useState<Comment[]>(initialComments)
+  const [commentText, setCommentText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   async function toggleReaction(emoji: string) {
-    if (pending) return
-    setPending(emoji)
+    if (pendingEmoji) return
+    setPendingEmoji(emoji)
 
     const existing = reactions.find(r => r.emoji === emoji)
     const hasReacted = existing?.hasReacted ?? false
 
-    // Optimistic update
     setReactions(prev => {
       if (hasReacted) {
         return prev
@@ -113,16 +120,50 @@ export function FeedCard({ event, currentUserId, initialReactions }: Props) {
         body: JSON.stringify({ feedEventId: event.id, emoji }),
       })
     } catch {
-      // Revert on error
       setReactions(initialReactions)
     } finally {
-      setPending(null)
+      setPendingEmoji(null)
     }
   }
 
-  const user = event.users
-  const firstName = user?.name?.split(' ')[0] ?? 'Someone'
+  async function submitComment(e: React.FormEvent) {
+    e.preventDefault()
+    const text = commentText.trim()
+    if (!text || submitting) return
 
+    setSubmitting(true)
+
+    const optimistic: Comment = {
+      id: `opt-${Date.now()}`,
+      feed_event_id: event.id,
+      user_id: currentUserId,
+      text,
+      created_at: new Date().toISOString(),
+      users: { name: currentUserName, avatar_url: currentUserAvatar },
+    }
+    setComments(prev => [...prev, optimistic])
+    setCommentText('')
+
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedEventId: event.id, text }),
+      })
+      const json = await res.json()
+      if (json.ok && json.comment) {
+        setComments(prev => prev.map(c => c.id === optimistic.id ? json.comment as Comment : c))
+      } else {
+        setComments(prev => prev.filter(c => c.id !== optimistic.id))
+      }
+    } catch {
+      setComments(prev => prev.filter(c => c.id !== optimistic.id))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const eventUser = event.users
   const shownEmojis = EMOJIS.map(emoji => {
     const group = reactions.find(r => r.emoji === emoji)
     return { emoji, count: group?.count ?? 0, hasReacted: group?.hasReacted ?? false }
@@ -132,9 +173,9 @@ export function FeedCard({ event, currentUserId, initialReactions }: Props) {
     <div className="bg-card border border-line rounded-[16px] px-4 py-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <AvatarCircle url={user?.avatar_url} name={user?.name} size="sm" />
+        <AvatarCircle url={eventUser?.avatar_url} name={eventUser?.name} size="sm" />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[14px] text-ink leading-tight truncate">{user?.name ?? 'A member'}</p>
+          <p className="font-semibold text-[14px] text-ink leading-tight truncate">{eventUser?.name ?? 'A member'}</p>
           <p className="mono text-[11px] text-ink-3 uppercase tracking-[0.05em]">
             {EVENT_VERB[event.event_type] ?? event.event_type}
           </p>
@@ -144,24 +185,18 @@ export function FeedCard({ event, currentUserId, initialReactions }: Props) {
 
       {/* Body */}
       <div className="mb-4">
-        {event.event_type === 'run_logged' && (
-          <RunBody data={event.data as RunLoggedData} />
-        )}
-        {event.event_type === 'badge_earned' && (
-          <BadgeBody data={event.data as BadgeEarnedData} />
-        )}
-        {event.event_type === 'challenge_joined' && (
-          <ChallengeBody data={event.data as ChallengeJoinedData} />
-        )}
+        {event.event_type === 'run_logged' && <RunBody data={event.data as RunLoggedData} />}
+        {event.event_type === 'badge_earned' && <BadgeBody data={event.data as BadgeEarnedData} />}
+        {event.event_type === 'challenge_joined' && <ChallengeBody data={event.data as ChallengeJoinedData} />}
       </div>
 
       {/* Reactions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-3">
         {shownEmojis.map(({ emoji, count, hasReacted }) => (
           <button
             key={emoji}
             onClick={() => toggleReaction(emoji)}
-            disabled={pending === emoji}
+            disabled={pendingEmoji === emoji}
             className={`flex items-center gap-[5px] px-[10px] py-[5px] rounded-full text-[13px] border transition-all active:scale-95 ${
               hasReacted
                 ? 'bg-race/10 border-race/30 text-race'
@@ -177,6 +212,49 @@ export function FeedCard({ event, currentUserId, initialReactions }: Props) {
           </button>
         ))}
       </div>
+
+      {/* Comments */}
+      {comments.length > 0 && (
+        <div className="border-t border-line/60 pt-3 mb-3 flex flex-col gap-[10px]">
+          {comments.map(c => (
+            <div key={c.id} className="flex items-start gap-2">
+              <AvatarCircle url={c.users?.avatar_url} name={c.users?.name} size="sm" className="flex-none w-[26px] h-[26px] text-[10px]" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] text-ink">
+                  <span className="font-semibold">{c.users?.name ?? 'Member'}</span>
+                  {' '}
+                  <span className="text-ink-2">{c.text}</span>
+                </p>
+                <p className="mono text-[10px] text-ink-3 mt-[2px]">{relativeTime(c.created_at)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Comment input */}
+      <form onSubmit={submitComment} className="flex items-center gap-2 border-t border-line/60 pt-3">
+        <AvatarCircle url={currentUserAvatar} name={currentUserName} size="sm" className="flex-none w-[26px] h-[26px] text-[10px]" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={commentText}
+          onChange={e => setCommentText(e.target.value)}
+          placeholder="Add a comment…"
+          maxLength={500}
+          className="flex-1 bg-transparent text-[13px] text-ink placeholder:text-ink-3 outline-none min-w-0"
+        />
+        {commentText.trim() && (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-none text-race disabled:opacity-40 transition-opacity"
+            aria-label="Post comment"
+          >
+            <Send size={15} strokeWidth={2} />
+          </button>
+        )}
+      </form>
     </div>
   )
 }
