@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Archivo, Spline_Sans_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { NotificationBell } from '@/components/notification-bell'
 import './globals.css'
 
 const archivo = Archivo({
@@ -52,6 +53,7 @@ export default function RootLayout({
       </head>
       <body className={`${archivo.variable} ${splineSansMono.variable} font-sans antialiased`}>
         {children}
+        <NotificationBell />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

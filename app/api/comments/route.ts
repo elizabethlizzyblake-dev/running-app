@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { writeNotification } from "@/lib/notifications"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -24,5 +25,22 @@ export async function POST(req: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Notify the event owner (skip self-comments)
+  const [{ data: event }, { data: commenter }] = await Promise.all([
+    supabase.from("feed_events").select("user_id, event_type").eq("id", feedEventId).maybeSingle(),
+    supabase.from("users").select("name").eq("id", user.id).maybeSingle(),
+  ])
+
+  if (event && event.user_id !== user.id) {
+    const eventLabel = event.event_type === 'badge_earned' ? 'badge' : event.event_type === 'challenge_joined' ? 'quest' : 'run'
+    const commenterName = commenter?.name ?? 'Someone'
+    const preview = text.trim().length > 60 ? text.trim().slice(0, 60) + '…' : text.trim()
+    await writeNotification(supabase, event.user_id, 'comment',
+      `${commenterName} commented on your ${eventLabel}: "${preview}"`,
+      { event_type: event.event_type, feed_event_id: feedEventId }
+    )
+  }
+
   return NextResponse.json({ ok: true, comment })
 }
