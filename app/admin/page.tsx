@@ -178,10 +178,8 @@ export default function AdminPage() {
                   const data = await res.json()
                   if (data.id) {
                     setWebhookStatus(`Webhook registered — subscription ID: ${data.id}`)
-                  } else if (data.errors?.[0]?.resource === 'PushSubscription') {
-                    setWebhookStatus('Already registered — click Check to see the subscription ID.')
                   } else {
-                    setWebhookStatus(JSON.stringify(data))
+                    setWebhookStatus(`Strava response: ${JSON.stringify(data)}`)
                   }
                 } catch (e) {
                   setWebhookStatus(`Error: ${e instanceof Error ? e.message : String(e)}`)
