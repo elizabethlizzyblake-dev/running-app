@@ -222,11 +222,10 @@ export default function ChallengesPage() {
       )}
 
       {challenges.length === 0 && (
-        <div className="px-[22px] mt-8 text-center">
-          <div className="pl-card p-8">
-            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">No quests yet</div>
-            <p className="text-sm text-ink-2">Check back soon for new challenges!</p>
-          </div>
+        <div className="flex flex-col items-center text-center px-8 pt-16 pb-8 gap-3">
+          <span className="text-[52px]">🎯</span>
+          <p className="font-bold text-[18px] text-ink">No quests yet</p>
+          <p className="text-[13px] text-ink-3 max-w-[220px] leading-relaxed">Your admin will post the next challenge here. Check back soon.</p>
         </div>
       )}
 

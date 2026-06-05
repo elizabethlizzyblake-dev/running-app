@@ -131,6 +131,15 @@ export default function LeaderboardPage() {
         </div>
       )}
 
+      {/* Empty state */}
+      {rows.length === 0 && (
+        <div className="flex flex-col items-center text-center px-8 pt-12 pb-8 gap-3">
+          <span className="text-[52px]">🏆</span>
+          <p className="font-bold text-[18px] text-ink">No one&apos;s on the board yet</p>
+          <p className="text-[13px] text-ink-3 max-w-[220px] leading-relaxed">Log a run this month to claim your spot at the top.</p>
+        </div>
+      )}
+
       {/* Remaining rows */}
       <div className="px-[22px] flex flex-col gap-2">
         {rest.map(row => {

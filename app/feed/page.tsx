@@ -83,9 +83,18 @@ export default async function FeedPage() {
     <div className="min-h-screen bg-paper pb-[110px]">
       <SettingsButton />
 
-      <div className="px-[22px] pt-[54px] pb-4">
-        <h1 className="anton text-[28px] tracking-[0.04em] text-ink">CLUB FEED</h1>
-        <p className="mono text-[11px] tracking-[0.06em] uppercase text-ink-3 mt-[2px]">What the pack is up to</p>
+      <div className="px-[22px] pt-[54px] pb-[6px]">
+        <div className="flex items-center gap-[9px]">
+          <div className="relative w-[26px] h-[26px] flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
+            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
+          </div>
+          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+        </div>
+      </div>
+      <div className="px-[22px] pt-[14px] pb-4">
+        <div className="pl-eyebrow">Club activity</div>
+        <h1 className="pl-heading mt-1">The Feed</h1>
       </div>
 
       <div className="px-[16px] flex flex-col gap-3">

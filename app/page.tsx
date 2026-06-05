@@ -449,7 +449,7 @@ export default async function HomePage({
       {totalRuns === 0 && (
         <div className="px-[22px] mt-[18px]">
           <div className="pl-card p-6 text-center">
-            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">No runs this month</div>
+            <div className="pl-seclabel mb-2">No runs this month</div>
             <p className="text-[13px] text-ink-2 mb-4">Your first run is always the hardest. Log it and we&apos;ll take care of the rest.</p>
             <Link href="/log-run" className="pl-btn pl-btn-primary">
               Log your first run

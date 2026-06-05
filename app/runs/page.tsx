@@ -272,11 +272,13 @@ export default function RunsPage() {
       </div>
 
       {runs.length === 0 ? (
-        <div className="px-[22px] mt-8">
-          <div className="pl-card p-8 text-center">
-            <div className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">No runs yet</div>
-            <p className="text-sm text-ink-2">Connect Strava or log a run to see your history here.</p>
-          </div>
+        <div className="flex flex-col items-center text-center px-8 pt-16 pb-8 gap-3">
+          <span className="text-[52px]">🏃</span>
+          <p className="font-bold text-[18px] text-ink">No runs yet</p>
+          <p className="text-[13px] text-ink-3 max-w-[220px] leading-relaxed">Log a run or connect Strava to start building your history.</p>
+          <Link href="/log-run" className="pl-btn pl-btn-primary mt-2" style={{ width: 'auto', paddingLeft: 24, paddingRight: 24 }}>
+            Log your first run
+          </Link>
         </div>
       ) : (
         <div className="px-[22px] pt-[14px]">

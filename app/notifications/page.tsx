@@ -52,14 +52,21 @@ export default async function NotificationsPage() {
       <SettingsButton />
       {hasUnread && <MarkReadOnMount />}
 
-      <div className="px-[22px] pt-[54px] pb-4 flex items-center gap-3">
-        <Link href="/" className="text-ink-3 -ml-1">
+      <div className="px-[22px] pt-[54px] pb-[6px] flex items-center gap-3">
+        <Link href="/" className="text-ink-3 -ml-1 flex-shrink-0">
           <ChevronLeft size={22} strokeWidth={1.8} />
         </Link>
-        <div>
-          <h1 className="anton text-[28px] tracking-[0.04em] text-ink leading-none">NOTIFICATIONS</h1>
-          <p className="mono text-[11px] tracking-[0.06em] uppercase text-ink-3 mt-[2px]">Your recent activity</p>
+        <div className="flex items-center gap-[9px]">
+          <div className="relative w-[26px] h-[26px] flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
+            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
+          </div>
+          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
         </div>
+      </div>
+      <div className="px-[22px] pt-[14px] pb-4">
+        <div className="pl-eyebrow">Your inbox</div>
+        <h1 className="pl-heading mt-1">Notifications</h1>
       </div>
 
       <div className="px-[16px] flex flex-col gap-2">
