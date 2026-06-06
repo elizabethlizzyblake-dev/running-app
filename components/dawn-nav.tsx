@@ -1,14 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Compass, Users, BookHeart, Plus } from "lucide-react"
+import { Glyph, type GlyphName } from "@/components/glyph"
 import { cn } from "@/lib/utils"
 
-const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/feed", icon: Users, label: "Friends" },
-  { href: "/challenges", icon: Compass, label: "Adventures" },
-  { href: "/trophies", icon: BookHeart, label: "Memories" },
+const navItems: { href: string; icon: GlyphName; label: string }[] = [
+  { href: "/", icon: "home", label: "Home" },
+  { href: "/feed", icon: "friends", label: "Friends" },
+  { href: "/challenges", icon: "compass", label: "Adventures" },
+  { href: "/trophies", icon: "memories", label: "Memories" },
 ]
 
 export function DawnNav({ active }: { active: string }) {
@@ -24,7 +24,7 @@ export function DawnNav({ active }: { active: string }) {
               active === item.href ? "text-runi-deep" : "text-dawn-ink-3",
             )}
           >
-            <item.icon size={21} strokeWidth={active === item.href ? 2.4 : 2} />
+            <Glyph name={item.icon} size={23} strokeWidth={active === item.href ? 2 : 1.7} />
             <span className="mono text-[9px] tracking-[0.06em] uppercase font-semibold">{item.label}</span>
           </Link>
         ))}
@@ -32,7 +32,7 @@ export function DawnNav({ active }: { active: string }) {
         {/* Log-a-run FAB */}
         <Link href="/log-run" className="flex-none" aria-label="Log a run">
           <span className="w-[52px] h-[52px] rounded-[18px] flex items-center justify-center text-[#4A2E08] shadow-lg active:scale-[0.92] transition-transform bg-gradient-to-br from-runi-deep to-runi">
-            <Plus size={24} strokeWidth={2.6} />
+            <Glyph name="footprint" size={26} strokeWidth={2} />
           </span>
         </Link>
 
@@ -45,7 +45,7 @@ export function DawnNav({ active }: { active: string }) {
               active === item.href ? "text-runi-deep" : "text-dawn-ink-3",
             )}
           >
-            <item.icon size={21} strokeWidth={active === item.href ? 2.4 : 2} />
+            <Glyph name={item.icon} size={23} strokeWidth={active === item.href ? 2 : 1.7} />
             <span className="mono text-[9px] tracking-[0.06em] uppercase font-semibold">{item.label}</span>
           </Link>
         ))}

@@ -4,7 +4,7 @@ import { RuniWisp } from "@/components/runi-wisp"
 import { HomeDashboard } from "@/components/home-dashboard"
 import { computeStreak } from "@/lib/achievements"
 import Link from "next/link"
-import { Compass, Sparkles, Flame, Trophy } from "lucide-react"
+import { Glyph } from "@/components/glyph"
 
 export const dynamic = 'force-dynamic'
 
@@ -56,10 +56,10 @@ function LandingPage() {
       {/* Feature grid */}
       <div className="px-[22px] pt-[6px] pb-[10px] grid grid-cols-2 gap-3">
         {[
-          { icon: <Sparkles size={20} className="text-runi-deep" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
-          { icon: <Compass size={20} className="text-[#B06F8A]" />, title: 'Adventures', body: 'Wander shared journeys with friends.' },
-          { icon: <Trophy size={20} className="text-runi-deep" />, title: 'Memories', body: 'Unlock keepsakes for every milestone.' },
-          { icon: <Flame size={20} className="text-[#E0402A]" />, title: 'Story map', body: 'Watch your journey grow, run by run.' },
+          { icon: <Glyph name="quill" size={20} className="text-runi-deep" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
+          { icon: <Glyph name="compass" size={20} className="text-[#B06F8A]" />, title: 'Adventures', body: 'Wander shared journeys with friends.' },
+          { icon: <Glyph name="medal" size={20} className="text-runi-deep" />, title: 'Memories', body: 'Unlock keepsakes for every milestone.' },
+          { icon: <Glyph name="map" size={20} className="text-[#E0402A]" />, title: 'Story map', body: 'Watch your journey grow, run by run.' },
         ].map((f) => (
           <div key={f.title} className="dawn-card p-4">
             <div className="mb-2">{f.icon}</div>

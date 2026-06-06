@@ -4,61 +4,69 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
-import {
-  Home,
-  Trophy,
-  Target,
-  BarChart3,
-  Plus,
-  Settings,
-  Flame,
-  TrendingUp,
-  TrendingDown,
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
-  Check,
-  Lock,
-  Users,
-  Calendar,
-  Clock,
-  Route,
-  MessageSquare,
-  Sparkles,
-  Zap,
-  Crown,
-  Medal,
-} from "lucide-react"
+import { Glyph, type GlyphName } from "@/components/glyph"
 
-// Paceline Brand Mark
-export function BrandMark({
-  size = 26,
-  ringColor = "race",
-}: {
-  size?: number
-  ringColor?: "race" | "paper" | "ink"
-}) {
-  const ringColorMap = {
-    race: "border-race",
-    paper: "border-paper",
-    ink: "border-ink",
-  }
+// ── Icon-compatible wrappers backed by bespoke glyphs ───────────
+// These keep the old call-sites working (e.g. <Check size={12} />)
+// while rendering hand-drawn storybook line art instead of Lucide.
 
+type IconProps = { size?: number; className?: string; strokeWidth?: number }
+
+function makeIcon(name: GlyphName) {
+  const Comp = ({ size = 20, className, strokeWidth }: IconProps) => (
+    <Glyph name={name} size={size} className={className} strokeWidth={strokeWidth} />
+  )
+  Comp.displayName = `Glyph(${name})`
+  return Comp
+}
+
+export const Flame = makeIcon("flame")
+export const ChevronRight = makeIcon("arrow-right")
+export const ChevronUp = makeIcon("chevron-up")
+export const ChevronDown = makeIcon("chevron-down")
+export const ChevronLeft = makeIcon("arrow-left")
+export const Check = makeIcon("check")
+export const Close = makeIcon("close")
+export const Users = makeIcon("friends")
+export const Calendar = makeIcon("calendar")
+export const Clock = makeIcon("pocket-watch")
+export const Route = makeIcon("trail")
+export const MessageSquare = makeIcon("leaf-note")
+export const Sparkles = makeIcon("star")
+export const Zap = makeIcon("comet")
+export const Crown = makeIcon("crown")
+export const Medal = makeIcon("medal")
+export const Trophy = makeIcon("memories")
+export const Target = makeIcon("compass")
+export const Settings = makeIcon("compass")
+export const Plus = makeIcon("footprint")
+export const Lock = makeIcon("close")
+export const HomeGlyph = makeIcon("home")
+export const MapGlyph = makeIcon("map")
+export const Camera = makeIcon("camera")
+export const Quill = makeIcon("quill")
+export const Pot = makeIcon("pot")
+export const PaperPlane = makeIcon("paper-plane")
+export const Magnifier = makeIcon("magnifier")
+export const Lantern = makeIcon("lantern")
+
+// Runika Brand Mark — a little glowing sun cresting the horizon
+export function BrandMark({ size = 26 }: { size?: number }) {
   return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <div className={cn("absolute inset-0 rounded-full border-[4px]", ringColorMap[ringColor])} />
-      <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
-    </div>
+    <span className="relative flex-shrink-0 inline-flex" style={{ width: size, height: size }}>
+      <Glyph name="sunrise" size={size} className="text-runi-deep" strokeWidth={1.8} />
+    </span>
   )
 }
 
-// Route Motif SVG decoration
+// Route Motif SVG decoration — a soft winding trail
 export function RouteMotif({ className }: { className?: string }) {
   return (
     <svg
       className={cn("absolute inset-0 opacity-60 pointer-events-none", className)}
       viewBox="0 0 360 220"
       preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
     >
       <path
         d="M-10 60 C 60 40, 90 130, 160 110 S 280 30, 370 80"
@@ -79,19 +87,22 @@ export function RouteMotif({ className }: { className?: string }) {
   )
 }
 
-// Medal configurations
-const MEDAL_CONFIG = {
-  distance: { m1: "#E0402A", m2: "#F2C14E", core: "#1E3A30", glyph: "#E8A93C", Icon: Route },
-  consistency: { m1: "#E8A93C", m2: "#fff3d6", core: "#B7301E", glyph: "#F3EEE3", Icon: Flame },
-  pace: { m1: "#1E3A30", m2: "#4f8d6f", core: "#E8A93C", glyph: "#1E3A30", Icon: Zap },
-  community: { m1: "#B7301E", m2: "#E8A93C", core: "#2C4E41", glyph: "#E8A93C", Icon: Users },
-  monthly: { m1: "#2C4E41", m2: "#E8A93C", core: "#E0402A", glyph: "#F3EEE3", Icon: Calendar },
-  special: { m1: "#E8A93C", m2: "#E0402A", core: "#1B1916", glyph: "#E8A93C", Icon: Crown },
+// Medal configurations — each keepsake gets its own bespoke glyph
+const MEDAL_CONFIG: Record<
+  string,
+  { m1: string; m2: string; core: string; glyph: string; icon: GlyphName }
+> = {
+  distance:    { m1: "#E0402A", m2: "#F2C14E", core: "#1E3A30", glyph: "#E8A93C", icon: "trail" },
+  consistency: { m1: "#E8A93C", m2: "#fff3d6", core: "#B7301E", glyph: "#F3EEE3", icon: "flame" },
+  pace:        { m1: "#1E3A30", m2: "#4f8d6f", core: "#E8A93C", glyph: "#1E3A30", icon: "comet" },
+  community:   { m1: "#B7301E", m2: "#E8A93C", core: "#2C4E41", glyph: "#E8A93C", icon: "friends" },
+  monthly:     { m1: "#2C4E41", m2: "#E8A93C", core: "#E0402A", glyph: "#F3EEE3", icon: "calendar" },
+  special:     { m1: "#E8A93C", m2: "#E0402A", core: "#1B1916", glyph: "#E8A93C", icon: "crown" },
 }
 
 export type MedalCategory = keyof typeof MEDAL_CONFIG
 
-// Medal Component
+// Medal Component — a hand-drawn keepsake disc
 export function PacelineMedal({
   category = "distance",
   size = "md",
@@ -102,10 +113,9 @@ export function PacelineMedal({
   locked?: boolean
 }) {
   const config = MEDAL_CONFIG[category] ?? MEDAL_CONFIG.distance
-  const Icon = config.Icon
 
   const sizeClasses = { sm: "medal-sm", md: "medal-md", lg: "medal-lg" }
-  const iconSizes = { sm: 17, md: 24, lg: 30 }
+  const iconSizes = { sm: 18, md: 26, lg: 34 }
 
   return (
     <div
@@ -118,7 +128,7 @@ export function PacelineMedal({
       }}
     >
       <span className="medal-glyph">
-        <Icon size={iconSizes[size]} strokeWidth={2.2} />
+        <Glyph name={config.icon} size={iconSizes[size]} strokeWidth={1.8} />
       </span>
     </div>
   )
@@ -147,11 +157,11 @@ export function PacelineProgress({
 }
 
 // Bottom Navigation
-const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/feed", icon: Users, label: "Feed" },
-  { href: "/challenges", icon: Target, label: "Quests" },
-  { href: "/leaderboard", icon: BarChart3, label: "Leaders" },
+const navItems: { href: string; icon: GlyphName; label: string }[] = [
+  { href: "/", icon: "home", label: "Home" },
+  { href: "/feed", icon: "friends", label: "Feed" },
+  { href: "/challenges", icon: "compass", label: "Quests" },
+  { href: "/leaderboard", icon: "medal", label: "Leaders" },
 ]
 
 export function PacelineNav({ active }: { active: string }) {
@@ -167,7 +177,7 @@ export function PacelineNav({ active }: { active: string }) {
               active === item.href ? "text-race" : "text-ink-3"
             )}
           >
-            <item.icon size={21} strokeWidth={active === item.href ? 2.4 : 2} />
+            <Glyph name={item.icon} size={23} strokeWidth={active === item.href ? 2 : 1.7} />
             <span className="mono text-[9px] tracking-[0.06em] uppercase font-semibold">{item.label}</span>
           </Link>
         ))}
@@ -175,7 +185,7 @@ export function PacelineNav({ active }: { active: string }) {
         {/* FAB */}
         <Link href="/log-run" className="flex-none" aria-label="Log a run">
           <span className="w-[50px] h-[50px] rounded-2xl bg-race text-white flex items-center justify-center shadow-lg active:scale-[0.92] transition-transform">
-            <Plus size={24} strokeWidth={2.6} />
+            <Glyph name="footprint" size={24} strokeWidth={2} />
           </span>
         </Link>
 
@@ -188,7 +198,7 @@ export function PacelineNav({ active }: { active: string }) {
               active === item.href ? "text-race" : "text-ink-3"
             )}
           >
-            <item.icon size={21} strokeWidth={active === item.href ? 2.4 : 2} />
+            <Glyph name={item.icon} size={23} strokeWidth={active === item.href ? 2 : 1.7} />
             <span className="mono text-[9px] tracking-[0.06em] uppercase font-semibold">{item.label}</span>
           </Link>
         ))}
@@ -214,34 +224,10 @@ export function SettingsButton() {
   return (
     <Link
       href="/admin"
+      aria-label="Admin"
       className="fixed top-4 right-4 z-50 w-[38px] h-[38px] rounded-full bg-card/90 backdrop-blur-lg border border-line text-ink-2 hover:text-ink transition-colors flex items-center justify-center"
     >
-      <Settings size={18} strokeWidth={1.8} />
+      <Glyph name="compass" size={18} strokeWidth={1.7} />
     </Link>
   )
-}
-
-// Re-export icons used across pages
-export {
-  Flame,
-  TrendingUp,
-  TrendingDown,
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
-  Check,
-  Lock,
-  Users,
-  Calendar,
-  Clock,
-  Route,
-  MessageSquare,
-  Sparkles,
-  Zap,
-  Crown,
-  Medal,
-  Trophy,
-  Target,
-  Settings,
-  Plus,
 }

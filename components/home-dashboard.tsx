@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Compass, Sparkles, Sunrise, Sun, Sunset, Moon } from "lucide-react"
+import { Glyph, type GlyphName } from "@/components/glyph"
 import { RuniWisp } from "@/components/runi-wisp"
 import { DawnNav } from "@/components/dawn-nav"
 import { AvatarCircle } from "@/components/avatar-circle"
@@ -29,11 +29,11 @@ export type HomeDashboardProps = {
   stravaImported: number
 }
 
-const GREETING_ICON = {
-  sunrise: Sunrise,
-  sun: Sun,
-  sunset: Sunset,
-  moon: Moon,
+const GREETING_GLYPH: Record<string, GlyphName> = {
+  sunrise: "sunrise",
+  sun: "sun",
+  sunset: "sunset",
+  moon: "moon",
 }
 
 function daysUntil(dateStr: string): number {
@@ -59,7 +59,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
   } = props
 
   const { config } = useWorldPhase()
-  const GreetIcon = GREETING_ICON[config.greetingIcon as keyof typeof GREETING_ICON] ?? Sunrise
+  const greetGlyph = GREETING_GLYPH[config.greetingIcon] ?? "sunrise"
 
   const chapter = getChapterProgress(totalDistance)
   const kmToNext = chapter.kmToNext
@@ -73,7 +73,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
         {/* Greeting */}
         <header className="px-[22px] pt-[56px] pb-2">
           <div className="flex items-center gap-2 dawn-eyebrow mb-[10px]">
-            <GreetIcon size={13} className="text-runi-deep" />
+            <Glyph name={greetGlyph} size={14} className="text-runi-deep" />
             <span>{config.greeting}</span>
           </div>
           <Link href="/profile" className="flex items-center gap-[14px]">
@@ -88,7 +88,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
         {stravaJustConnected && (
           <div className="mx-[22px] mb-2">
             <div className="dawn-card px-4 py-3 flex items-center gap-3">
-              <Sparkles size={18} className="text-runi-deep flex-shrink-0" />
+              <Glyph name="star" size={18} className="text-runi-deep flex-shrink-0" />
               <p className="text-[13px] text-dawn-ink">
                 {stravaImported > 0
                   ? `${stravaImported} past adventure${stravaImported !== 1 ? "s" : ""} found and added to your journey.`
@@ -159,7 +159,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
             )}
 
             <Link href="/log-run" className="dawn-btn dawn-btn-primary mt-5">
-              <Compass size={17} />
+              <Glyph name="compass" size={18} />
               Begin adventure
             </Link>
           </div>
@@ -198,7 +198,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
           <section className="px-[22px] pt-[14px]">
             <Link href="/challenges" className="block dawn-card p-4">
               <div className="flex items-center gap-3">
-                <Compass size={20} className="text-dawn-ink-3 flex-shrink-0" />
+                <Glyph name="compass" size={20} className="text-dawn-ink-3 flex-shrink-0" />
                 <div className="flex-1">
                   <div className="font-semibold text-[14px] text-dawn-ink">
                     Plan an adventure together
