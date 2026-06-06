@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Check } from "lucide-react"
+import { ChevronLeft, Check } from "@/components/paceline-ui"
 import type { RunningLevel, Motivation, Struggle, SuccessGoal } from "@/lib/types"
 import {
   RUNNING_LEVELS,

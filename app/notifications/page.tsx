@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
+import { PacelineNav, SettingsButton, ChevronLeft } from "@/components/paceline-ui"
 import { MarkReadOnMount } from "./mark-read-on-mount"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 

@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { PacelineNav, SettingsButton } from "@/components/paceline-ui"
+import { PacelineNav, SettingsButton, ChevronLeft, Pencil, Trash2, X } from "@/components/paceline-ui"
 import Link from "next/link"
-import { ChevronLeft, Pencil, Trash2, X } from "lucide-react"
 import { formatPace, formatDuration, formatDate, formatMonth } from "@/lib/formatting"
 import type { Run, RunType } from "@/lib/types"
 

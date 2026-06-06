@@ -49,6 +49,10 @@ export const Pot = makeIcon("pot")
 export const PaperPlane = makeIcon("paper-plane")
 export const Magnifier = makeIcon("magnifier")
 export const Lantern = makeIcon("lantern")
+export const Pencil = makeIcon("quill")
+export const Trash2 = makeIcon("trash")
+export const X = makeIcon("close")
+export const TrendingUp = makeIcon("comet")
 
 // Runika Brand Mark — a little glowing sun cresting the horizon
 export function BrandMark({ size = 26 }: { size?: number }) {

@@ -45,6 +45,7 @@ export type GlyphName =
   | "flame"
   | "comet"
   | "crown"
+  | "trash"
 
 type GlyphProps = {
   name: GlyphName
@@ -353,6 +354,16 @@ export function Glyph({ name, size = 22, className, strokeWidth = 1.7 }: GlyphPr
           <circle cx="5" cy="9.3" r="0.9" fill="currentColor" />
           <circle cx="19" cy="9.3" r="0.9" fill="currentColor" />
           <circle cx="12" cy="6.3" r="0.9" fill="currentColor" />
+        </svg>
+      )
+    case "trash":
+      // A little keepsake pot/urn for letting a memory go
+      return (
+        <svg {...common}>
+          <path {...S} d="M6.5 7.5h11M10 7.5V6.2A1.2 1.2 0 0 1 11.2 5h1.6A1.2 1.2 0 0 1 14 6.2v1.3" />
+          <path {...TINT} d="M7.6 8.6h8.8l-.7 8.2a1.6 1.6 0 0 1-1.6 1.5h-4.2a1.6 1.6 0 0 1-1.6-1.5z" />
+          <path {...S} d="M7.6 8.6h8.8l-.7 8.3a1.6 1.6 0 0 1-1.6 1.4H9.9a1.6 1.6 0 0 1-1.6-1.4z" />
+          <path {...S} d="M10.4 11.4v4M13.6 11.4v4" />
         </svg>
       )
     default:

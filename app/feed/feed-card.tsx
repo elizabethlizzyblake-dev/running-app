@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { AvatarCircle } from "@/components/avatar-circle"
 import { formatPace, formatDistance, formatDuration } from "@/lib/formatting"
-import { Send } from "lucide-react"
+import { PaperPlane } from "@/components/paceline-ui"
 import type { FeedEvent, ReactionGroup, Comment } from "./page"
 import type { RunLoggedData, BadgeEarnedData, ChallengeJoinedData } from "@/lib/feed"
 
@@ -251,7 +251,7 @@ export function FeedCard({ event, currentUserId, currentUserName, currentUserAva
             className="flex-none text-race disabled:opacity-40 transition-opacity"
             aria-label="Post comment"
           >
-            <Send size={15} strokeWidth={2} />
+            <PaperPlane size={15} strokeWidth={2} />
           </button>
         )}
       </form>

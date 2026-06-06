@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Bell } from "lucide-react"
+import { Glyph } from "@/components/glyph"
 import { supabase } from "@/lib/supabase"
 
 export function NotificationBell() {
@@ -32,7 +32,7 @@ export function NotificationBell() {
       aria-label={unread > 0 ? `${unread} unread notifications` : 'Notifications'}
       className="fixed top-4 right-[54px] z-50 w-[38px] h-[38px] rounded-full bg-card/90 backdrop-blur-lg border border-line text-ink-2 hover:text-ink transition-colors flex items-center justify-center"
     >
-      <Bell size={18} strokeWidth={1.8} />
+      <Glyph name="lantern" size={18} />
       {unread > 0 && (
         <span className="absolute top-[6px] right-[6px] w-[8px] h-[8px] rounded-full bg-race border border-paper" />
       )}

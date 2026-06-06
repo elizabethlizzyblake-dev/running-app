@@ -4,8 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { supabase } from "@/lib/supabase"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import { PacelineNav, PacelineProgress, SettingsButton } from "@/components/paceline-ui"
+import { PacelineNav, PacelineProgress, SettingsButton, ChevronLeft } from "@/components/paceline-ui"
 import { AvatarCircle, PRESETS } from "@/components/avatar-circle"
 
 // ── Smooth path generation ──────────────────────────────────────

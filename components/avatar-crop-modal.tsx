@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Check, X, ZoomIn } from "lucide-react"
+import { Glyph } from "@/components/glyph"
 
 interface Props {
   file: File
@@ -158,7 +158,7 @@ export function AvatarCropModal({ file, onDone, onCancel }: Props) {
 
       {/* Zoom slider */}
       <div className="mt-5 w-full max-w-[280px] flex items-center gap-3">
-        <ZoomIn size={14} className="text-paper/40 flex-shrink-0" />
+        <Glyph name="magnifier" size={15} className="text-paper/40 flex-shrink-0" />
         <input
           type="range" min="1" max="3" step="0.01"
           value={zoom}
@@ -174,10 +174,10 @@ export function AvatarCropModal({ file, onDone, onCancel }: Props) {
           className="flex-1 flex items-center justify-center gap-2 py-[14px] rounded-[14px] font-semibold text-[15px]"
           style={{ background: "rgba(255,255,255,0.1)", color: "#F3EEE3", border: "1px solid rgba(255,255,255,0.18)" }}
         >
-          <X size={16} /> Cancel
+          <Glyph name="close" size={16} /> Cancel
         </button>
         <button onClick={handleDone} className="flex-1 pl-btn pl-btn-primary">
-          <Check size={16} strokeWidth={2.6} /> Use photo
+          <Glyph name="check" size={16} /> Use photo
         </button>
       </div>
     </div>
