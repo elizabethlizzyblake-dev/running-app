@@ -464,6 +464,63 @@
   box-shadow: none;
 }
 
+/* ── Living world atmosphere ────────────────────────────────── */
+.dawn-sky {
+  transition: background 1.6s ease;
+}
+
+.world-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.world-mote {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  animation-name: worldDrift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.world-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  animation-name: worldTwinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes worldDrift {
+  0% { opacity: 0; transform: translateY(0) translateX(0); }
+  25% { opacity: 0.65; }
+  75% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-40px) translateX(12px); }
+}
+
+@keyframes worldTwinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-mote, .world-star { animation: none; opacity: 0.4; }
+}
+
+/* keep page content above ambient particles */
+.world-content {
+  position: relative;
+  z-index: 1;
+}
+
 /* ── Misty Dawn adventure world ─────────────────────────────── */
 /* dawn world utilities */
 @layer utilities {
@@ -711,6 +768,46 @@
 @keyframes runiBlink {
   0%, 92%, 100% { transform: scaleY(1); }
   95% { transform: scaleY(0.1); }
+}
+
+/* Runi moods */
+.runi-eyes-closed .runi-eye {
+  animation: none;
+  height: 12%;
+  transform: scaleY(0.35);
+  border-radius: 999px;
+}
+
+.runi-zzz {
+  position: absolute;
+  top: -6%;
+  right: -4%;
+  font-family: 'Spline Sans Mono', monospace;
+  font-weight: 700;
+  color: var(--runi-deep);
+  font-size: 42%;
+  animation: runiZzz 3s ease-in-out infinite;
+}
+
+@keyframes runiZzz {
+  0% { opacity: 0; transform: translateY(4px) scale(0.7); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px) scale(1.1); }
+}
+
+.runi-celebrate { animation: runiCelebrate 1.1s ease-in-out infinite; }
+
+@keyframes runiCelebrate {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-12%) rotate(3deg); }
+}
+
+.runi-spark-4 {
+  width: 8%;
+  height: 8%;
+  top: 16%;
+  left: 16%;
+  animation: runiTwinkle 1.8s ease-in-out 0.3s infinite;
 }
 
 /* ── Memory Unlocked celebration ────────────────────────────── */
