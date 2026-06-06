@@ -465,6 +465,7 @@
 }
 
 /* ── Misty Dawn adventure world ─────────────────────────────── */
+/* dawn world utilities */
 @layer utilities {
   /* full-page dawn sky */
   .dawn-sky {
