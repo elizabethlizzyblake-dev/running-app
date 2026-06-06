@@ -45,13 +45,13 @@ export default function SignupPage() {
             <div className="absolute inset-0 rounded-full border-[5px] border-race" />
             <div className="absolute w-[11px] h-[11px] rounded-full bg-gold top-[-2px] left-1/2 -translate-x-1/2" />
           </div>
-          <span className="anton text-2xl tracking-[0.07em] text-ink">PACELINE</span>
-          <p className="mono text-[11px] tracking-[0.14em] uppercase text-ink-3 mt-1">Run together. Rise together.</p>
+          <span className="anton text-2xl tracking-[0.07em] text-ink">RUNIKA</span>
+          <p className="mono text-[11px] tracking-[0.14em] uppercase text-ink-3 mt-1">Every run tells a story.</p>
         </div>
 
         <div className="pl-card p-6">
-          <div className="pl-eyebrow mb-1">New member</div>
-          <h1 className="font-extrabold text-[22px] text-ink mb-5">Join the club</h1>
+          <div className="pl-eyebrow mb-1">New adventurer</div>
+          <h1 className="font-extrabold text-[22px] text-ink mb-5">Begin your journey</h1>
 
           <form onSubmit={handleSignup} className="flex flex-col gap-3">
             <div>

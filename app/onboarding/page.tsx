@@ -296,7 +296,7 @@ export default function OnboardingPage() {
           <div className="absolute inset-0 rounded-full border-[3px] border-race" />
           <div className="absolute w-[6px] h-[6px] rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
         </div>
-        <span className="anton text-sm tracking-[0.07em] text-ink-3">PACELINE</span>
+        <span className="anton text-sm tracking-[0.07em] text-ink-3">RUNIKA</span>
       </div>
 
       {/* Question */}

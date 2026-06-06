@@ -73,7 +73,7 @@ export default function LeaderboardPage() {
             <div className="absolute inset-0 rounded-full border-[4px] border-race" />
             <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
           </div>
-          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+          <span className="anton text-lg tracking-[0.07em] text-ink">RUNIKA</span>
         </div>
       </div>
 

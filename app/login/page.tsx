@@ -50,8 +50,8 @@ export default function LoginPage() {
             <div className="absolute inset-0 rounded-full border-[5px] border-race" />
             <div className="absolute w-[11px] h-[11px] rounded-full bg-gold top-[-2px] left-1/2 -translate-x-1/2" />
           </div>
-          <span className="anton text-2xl tracking-[0.07em] text-ink">PACELINE</span>
-          <p className="mono text-[11px] tracking-[0.14em] uppercase text-ink-3 mt-1">Run together. Rise together.</p>
+          <span className="anton text-2xl tracking-[0.07em] text-ink">RUNIKA</span>
+          <p className="mono text-[11px] tracking-[0.14em] uppercase text-ink-3 mt-1">Every run tells a story.</p>
         </div>
 
         <div className="pl-card p-6">

@@ -1,11 +1,11 @@
 {
-  "name": "Run Club Quest",
-  "short_name": "RunQuest",
-  "description": "Track your runs, earn badges, and conquer challenges with your local running community",
+  "name": "Runika — A Cosy Running Adventure",
+  "short_name": "Runika",
+  "description": "Lace up with Runi, your glowing companion. Unlock memories, wander new adventures, and watch your running journey unfold.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1f2e",
-  "theme_color": "#1a1f2e",
+  "background_color": "#C9C2E8",
+  "theme_color": "#C9C2E8",
   "icons": [
     {
       "src": "/icon.svg",

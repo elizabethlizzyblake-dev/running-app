@@ -29,7 +29,7 @@ function LandingPage() {
       <div className="flex items-center justify-between px-[22px] pt-[54px] pb-4">
         <div className="flex items-center gap-[10px]">
           <RuniWisp size="sm" />
-          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">PACELINE</span>
+          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">RUNIKA</span>
         </div>
         <Link
           href="/login"
@@ -213,7 +213,7 @@ export default async function HomePage({
       <div className="px-[22px] pt-[54px] pb-[6px]">
         <div className="flex items-center gap-[10px]">
           <RuniWisp size="sm" />
-          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">PACELINE</span>
+          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">RUNIKA</span>
         </div>
       </div>
 

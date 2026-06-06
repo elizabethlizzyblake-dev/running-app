@@ -17,7 +17,7 @@ const splineSansMono = Spline_Sans_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Paceline — A Cosy Running Adventure',
+  title: 'Runika — A Cosy Running Adventure',
   description: 'Lace up with Runi, your glowing companion. Unlock memories, wander new adventures, and watch your running journey unfold.',
   generator: 'v0.app',
   manifest: '/manifest.json',
