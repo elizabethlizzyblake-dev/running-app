@@ -20,6 +20,20 @@
   --line: rgba(27, 25, 22, 0.12);
   --line-soft: rgba(27, 25, 22, 0.07);
 
+  /* Misty dawn adventure palette (Runi's world) */
+  --dawn-sky-top: #C9C2E8;     /* soft lavender */
+  --dawn-sky-mid: #E7C7CE;     /* dusty rose */
+  --dawn-sky-low: #F8D9B8;     /* peach */
+  --dawn-mist: #F4EEF2;        /* pale misty haze */
+  --dawn-ink: #3B3450;         /* deep twilight text */
+  --dawn-ink-2: #6A6080;       /* muted lavender-grey */
+  --dawn-ink-3: #9A93AD;       /* faint */
+  --dawn-card: rgba(255, 255, 255, 0.62);
+  --dawn-line: rgba(59, 52, 80, 0.12);
+  --runi: #FFC76B;             /* sunrise gold wisp */
+  --runi-deep: #F4A93C;
+  --runi-glow: rgba(255, 199, 107, 0.55);
+
   /* Semantic tokens mapped to Paceline palette */
   --background: var(--paper);
   --foreground: var(--ink);
@@ -77,6 +91,16 @@
   --color-pine-2: var(--pine-2);
   --color-gold: var(--gold);
   --color-line: var(--line);
+  --color-dawn-sky-top: var(--dawn-sky-top);
+  --color-dawn-sky-mid: var(--dawn-sky-mid);
+  --color-dawn-sky-low: var(--dawn-sky-low);
+  --color-dawn-mist: var(--dawn-mist);
+  --color-dawn-ink: var(--dawn-ink);
+  --color-dawn-ink-2: var(--dawn-ink-2);
+  --color-dawn-ink-3: var(--dawn-ink-3);
+  --color-dawn-line: var(--dawn-line);
+  --color-runi: var(--runi);
+  --color-runi-deep: var(--runi-deep);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -438,4 +462,252 @@
   filter: grayscale(0.92);
   opacity: 0.42;
   box-shadow: none;
+}
+
+/* ── Misty Dawn adventure world ─────────────────────────────── */
+@layer utilities {
+  /* full-page dawn sky */
+  .dawn-sky {
+    background:
+      radial-gradient(120% 80% at 70% -10%, rgba(255, 255, 255, 0.55), transparent 55%),
+      linear-gradient(
+        180deg,
+        var(--dawn-sky-top) 0%,
+        var(--dawn-sky-mid) 38%,
+        var(--dawn-sky-low) 72%,
+        var(--dawn-mist) 100%
+      );
+    color: var(--dawn-ink);
+  }
+
+  /* frosted glass card that floats over the sky */
+  .dawn-card {
+    background: var(--dawn-card);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 22px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(59, 52, 80, 0.10);
+  }
+
+  /* hero band — sunrise over distant hills */
+  .dawn-hero {
+    background:
+      radial-gradient(80% 120% at 78% 8%, var(--runi-glow), transparent 46%),
+      linear-gradient(165deg, #5E4E7A 0%, #B06F8A 52%, #F2A86A 100%);
+    color: #fff;
+    border-radius: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dawn-eyebrow {
+    font-family: 'Spline Sans Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dawn-ink-2);
+  }
+
+  .dawn-seclabel {
+    font-family: 'Spline Sans Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dawn-ink-2);
+    font-weight: 600;
+  }
+
+  .dawn-heading {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    line-height: 0.96;
+    letter-spacing: 0.01em;
+  }
+
+  .dawn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-family: 'Spline Sans Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 199, 107, 0.22);
+    color: #7A4E12;
+  }
+
+  .dawn-pill-onhero {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+  }
+
+  .dawn-prog {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(59, 52, 80, 0.12);
+    overflow: hidden;
+  }
+
+  .dawn-prog-onhero {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .dawn-prog-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--runi-deep), var(--runi));
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dawn-btn {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    width: 100%;
+    padding: 15px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.12s ease, filter 0.2s ease;
+  }
+
+  .dawn-btn:active {
+    transform: scale(0.98);
+  }
+
+  .dawn-btn-primary {
+    background: linear-gradient(135deg, var(--runi-deep), var(--runi));
+    color: #4A2E08;
+    box-shadow: 0 8px 20px rgba(244, 169, 60, 0.35);
+  }
+
+  .dawn-btn-ghost {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--dawn-ink);
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .dawn-statn {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    line-height: 0.9;
+  }
+
+  .dawn-statl {
+    font-family: 'Spline Sans Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dawn-ink-3);
+    margin-top: 6px;
+  }
+}
+
+/* ── Runi the wisp ──────────────────────────────────────────── */
+.runi-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.runi-halo {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--runi-glow) 0%, rgba(255, 199, 107, 0) 68%);
+  animation: runiHalo 3.4s ease-in-out infinite;
+}
+
+.runi-core {
+  position: relative;
+  width: 56%;
+  height: 56%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #FFF4DD 0%, var(--runi) 46%, var(--runi-deep) 100%);
+  box-shadow:
+    0 0 18px var(--runi-glow),
+    inset 0 -3px 8px rgba(244, 169, 60, 0.6),
+    inset 0 3px 6px rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.runi-eyes {
+  display: flex;
+  gap: 22%;
+  margin-top: 4%;
+}
+
+.runi-eye {
+  width: 11%;
+  min-width: 3px;
+  aspect-ratio: 1 / 1.4;
+  border-radius: 999px;
+  background: #5A3A12;
+  animation: runiBlink 5s ease-in-out infinite;
+}
+
+.runi-spark {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--runi);
+  box-shadow: 0 0 8px var(--runi-glow);
+}
+
+.runi-spark-1 {
+  width: 9%;
+  height: 9%;
+  top: 8%;
+  right: 14%;
+  animation: runiTwinkle 2.6s ease-in-out infinite;
+}
+
+.runi-spark-2 {
+  width: 7%;
+  height: 7%;
+  bottom: 16%;
+  left: 10%;
+  animation: runiTwinkle 3.1s ease-in-out 0.6s infinite;
+}
+
+.runi-spark-3 {
+  width: 6%;
+  height: 6%;
+  top: 30%;
+  left: 2%;
+  animation: runiTwinkle 2.2s ease-in-out 1.1s infinite;
+}
+
+.runi-float {
+  animation: runiFloat 4.2s ease-in-out infinite;
+}
+
+@keyframes runiFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9%); }
+}
+
+@keyframes runiHalo {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes runiTwinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes runiBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
 }

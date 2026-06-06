@@ -1,23 +1,20 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import {
-  RouteMotif,
   PacelineMedal,
-  PacelineProgress,
-  PacelineNav,
   SettingsButton,
-  Flame,
   ChevronRight,
-  Trophy,
 } from "@/components/paceline-ui"
 import { type MedalCategory } from "@/components/paceline-ui"
+import { RuniWisp } from "@/components/runi-wisp"
+import { DawnNav } from "@/components/dawn-nav"
 import { AvatarCircle } from "@/components/avatar-circle"
 import { formatPace } from "@/lib/formatting"
 import { computeStreak } from "@/lib/achievements"
 import { PERSONA_CONFIG } from "@/lib/onboarding"
 import type { Persona } from "@/lib/types"
 import Link from "next/link"
-import { Map as MapIcon, Medal, Users, Zap } from "lucide-react"
+import { Compass, Sparkles, Flame, Trophy } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -27,19 +24,16 @@ const TARGET_DISTANCE = 100
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="min-h-screen dawn-sky flex flex-col">
       {/* Nav */}
       <div className="flex items-center justify-between px-[22px] pt-[54px] pb-4">
-        <div className="flex items-center gap-[9px]">
-          <div className="relative w-[26px] h-[26px] flex-shrink-0">
-            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
-            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
-          </div>
-          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+        <div className="flex items-center gap-[10px]">
+          <RuniWisp size="sm" />
+          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">PACELINE</span>
         </div>
         <Link
           href="/login"
-          className="mono text-[12px] tracking-[0.06em] font-semibold text-ink-2 border border-line rounded-full px-4 py-2"
+          className="mono text-[12px] tracking-[0.06em] font-semibold text-dawn-ink-2 border border-dawn-line rounded-full px-4 py-2 bg-white/40"
         >
           Log in
         </Link>
@@ -47,23 +41,25 @@ function LandingPage() {
 
       {/* Hero */}
       <div className="px-[22px] pt-[28px] pb-[10px]">
-        <div className="pl-pine p-[26px] relative overflow-hidden">
-          <RouteMotif />
+        <div className="dawn-hero p-[28px] relative">
+          <div className="absolute top-5 right-6">
+            <RuniWisp size="lg" />
+          </div>
           <div className="relative z-[2]">
-            <div className="mono text-[10.5px] tracking-[0.16em] uppercase text-paper/55 mb-3">
-              Run Club &middot; Track &middot; Compete
+            <div className="mono text-[10.5px] tracking-[0.18em] uppercase text-white/70 mb-3">
+              A cosy running adventure
             </div>
-            <h1 className="anton text-[38px] leading-[0.95] text-paper uppercase">
-              Run together.<br />Go further.
+            <h1 className="dawn-heading text-[40px] text-white uppercase max-w-[240px]">
+              Every run<br />tells a story.
             </h1>
-            <p className="text-paper/70 text-[14px] mt-4 leading-[1.5] max-w-[280px]">
-              Log your runs, join group challenges, earn badges and climb the leaderboard — with your club.
+            <p className="text-white/80 text-[14px] mt-4 leading-[1.5] max-w-[270px]">
+              Lace up with Runi, your glowing companion. Unlock memories, wander new adventures, and watch your journey unfold.
             </p>
             <Link
               href="/signup"
-              className="mt-6 inline-flex items-center gap-2 bg-gold text-ink font-bold text-[14px] px-6 py-[13px] rounded-[14px]"
+              className="mt-6 inline-flex items-center gap-2 bg-white text-[#5E4E7A] font-bold text-[14px] px-6 py-[13px] rounded-[16px]"
             >
-              Join the club — it&apos;s free
+              Begin your journey
             </Link>
           </div>
         </div>
@@ -72,26 +68,26 @@ function LandingPage() {
       {/* Feature grid */}
       <div className="px-[22px] pt-[6px] pb-[10px] grid grid-cols-2 gap-3">
         {[
-          { icon: <Zap size={20} className="text-race" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
-          { icon: <Users size={20} className="text-pine" />, title: 'Challenges', body: 'Join group quests and track progress together.' },
-          { icon: <Medal size={20} className="text-[#E8A93C]" />, title: 'Earn badges', body: 'Unlock patches for milestones and streaks.' },
-          { icon: <MapIcon size={20} className="text-ink-2" />, title: 'Route maps', body: 'Virtual routes like Norfolk Coastal Challenge.' },
+          { icon: <Sparkles size={20} className="text-runi-deep" />, title: 'Log runs', body: 'Manual or auto-imported from Strava.' },
+          { icon: <Compass size={20} className="text-[#B06F8A]" />, title: 'Adventures', body: 'Wander shared journeys with friends.' },
+          { icon: <Trophy size={20} className="text-runi-deep" />, title: 'Memories', body: 'Unlock keepsakes for every milestone.' },
+          { icon: <Flame size={20} className="text-[#E0402A]" />, title: 'Story map', body: 'Watch your journey grow, run by run.' },
         ].map((f) => (
-          <div key={f.title} className="pl-card p-4">
+          <div key={f.title} className="dawn-card p-4">
             <div className="mb-2">{f.icon}</div>
-            <div className="font-bold text-[14px] mb-1">{f.title}</div>
-            <p className="text-[12px] text-ink-3 leading-[1.4]">{f.body}</p>
+            <div className="font-bold text-[14px] mb-1 text-dawn-ink">{f.title}</div>
+            <p className="text-[12px] text-dawn-ink-2 leading-[1.4]">{f.body}</p>
           </div>
         ))}
       </div>
 
       {/* CTA strip */}
       <div className="px-[22px] mt-auto pt-4 pb-[48px] flex flex-col gap-3">
-        <Link href="/signup" className="pl-btn pl-btn-primary">
+        <Link href="/signup" className="dawn-btn dawn-btn-primary">
           Create your account
         </Link>
-        <Link href="/login" className="pl-btn pl-btn-ghost">
-          Already have an account? Log in
+        <Link href="/login" className="dawn-btn dawn-btn-ghost">
+          Already on an adventure? Log in
         </Link>
       </div>
     </div>
@@ -210,37 +206,34 @@ export default async function HomePage({
   const runsThisWeek  = weekRuns?.length ?? 0
 
   return (
-    <div className="min-h-screen bg-paper pb-[110px] pl-anim">
+    <div className="min-h-screen dawn-sky pb-[112px] pl-anim">
       <SettingsButton />
 
       {/* Header */}
       <div className="px-[22px] pt-[54px] pb-[6px]">
-        <div className="flex items-center gap-[9px]">
-          <div className="relative w-[26px] h-[26px] flex-shrink-0">
-            <div className="absolute inset-0 rounded-full border-[4px] border-race" />
-            <div className="absolute w-2 h-2 rounded-full bg-gold top-[-1px] left-1/2 -translate-x-1/2" />
-          </div>
-          <span className="anton text-lg tracking-[0.07em] text-ink">PACELINE</span>
+        <div className="flex items-center gap-[10px]">
+          <RuniWisp size="sm" />
+          <span className="anton text-lg tracking-[0.07em] text-dawn-ink">PACELINE</span>
         </div>
       </div>
 
       {/* Greeting */}
       <Link href="/profile" className="block px-[22px] pt-[14px] pb-2">
-        <div className="pl-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
+        <div className="dawn-eyebrow">{dayName} &middot; {monthName} {dayNum}</div>
         <div className="flex items-center gap-4 mt-2">
           <AvatarCircle url={avatarUrl} name={firstName} size="md" />
-          <h1 className="pl-heading">Hey,<br />{firstName}</h1>
+          <h1 className="dawn-heading text-[40px] uppercase text-dawn-ink">Hey,<br />{firstName}</h1>
         </div>
       </Link>
 
       {/* Strava connected banner */}
       {stravaJustConnected && (
         <div className="mx-[22px] mb-2">
-          <div className="pl-card px-4 py-3 flex items-center gap-3 border-pine/40 bg-pine/5">
-            <span className="text-lg">🟠</span>
+          <div className="dawn-card px-4 py-3 flex items-center gap-3">
+            <Sparkles size={18} className="text-runi-deep flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-pine">Strava connected!</p>
-              <p className="mono text-[10.5px] text-ink-3">
+              <p className="text-sm font-semibold text-dawn-ink">Strava connected!</p>
+              <p className="mono text-[10.5px] text-dawn-ink-3">
                 {stravaImported > 0
                   ? `${stravaImported} run${stravaImported !== 1 ? 's' : ''} imported from the last 30 days`
                   : 'No runs found in the last 30 days yet'}
@@ -250,34 +243,38 @@ export default async function HomePage({
         </div>
       )}
 
-      {/* Club Goal Hero */}
+      {/* Journey Hero — Runi leads the way */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
-        <div className="pl-pine p-[22px]">
-          <RouteMotif />
+        <div className="dawn-hero p-[24px]">
+          <div className="absolute top-4 right-5">
+            <RuniWisp size="md" />
+          </div>
           <div className="relative z-[2]">
             <div className="flex justify-between items-start">
               <div>
-                <div className="mono text-[10.5px] tracking-[0.16em] uppercase text-paper/55">
-                  Club Goal &middot; {monthName}
+                <div className="mono text-[10.5px] tracking-[0.18em] uppercase text-white/65">
+                  Your journey &middot; {monthName}
                 </div>
-                <div className="font-extrabold text-[19px] mt-1 text-paper">Distance Dash</div>
+                <div className="font-extrabold text-[19px] mt-1 text-white">The Dawn Trail</div>
               </div>
-              <span className="pl-pill pl-pill-onpine">
+              <span className="dawn-pill dawn-pill-onhero">
                 <Flame size={13} /> {streakDays}-day streak
               </span>
             </div>
 
             <div className="flex items-baseline gap-2 mt-5">
-              <span className="anton text-[62px] leading-[0.8] text-gold">{totalDistance.toFixed(1)}</span>
-              <span className="mono text-base text-paper/65">/ {TARGET_DISTANCE} km</span>
+              <span className="anton text-[62px] leading-[0.8] text-white">{totalDistance.toFixed(1)}</span>
+              <span className="mono text-base text-white/70">/ {TARGET_DISTANCE} km</span>
             </div>
 
             <div className="mt-4">
-              <PacelineProgress value={progressPercent} onPine />
+              <div className="dawn-prog dawn-prog-onhero">
+                <div className="dawn-prog-fill" style={{ width: `${Math.min(progressPercent, 100)}%` }} />
+              </div>
               <div className="flex justify-between mt-[9px]">
-                <span className="mono text-[11px] text-gold">{Math.round(progressPercent)}% there</span>
-                <span className="text-[12.5px] text-paper/70">
-                  {(TARGET_DISTANCE - totalDistance).toFixed(1)} km to go — hold the line.
+                <span className="mono text-[11px] text-white font-semibold">{Math.round(progressPercent)}% explored</span>
+                <span className="text-[12.5px] text-white/75">
+                  {(TARGET_DISTANCE - totalDistance).toFixed(1)} km of trail ahead.
                 </span>
               </div>
             </div>
@@ -285,15 +282,15 @@ export default async function HomePage({
         </div>
       </div>
 
-      {/* Persona motivation card */}
+      {/* Runi's whisper — persona motivation */}
       <div className="px-[22px] pt-[10px] pb-[6px]">
-        <div className="pl-card p-4 flex items-start gap-3">
-          <Flame size={20} className="text-race flex-shrink-0 mt-[2px]" />
+        <div className="dawn-card p-4 flex items-start gap-3">
+          <RuniWisp size="sm" float={false} />
           <div>
-            <div className="font-semibold text-[14px] mb-1">
+            <div className="font-semibold text-[14px] mb-1 text-dawn-ink">
               {personaCfg ? personaCfg.headline : streakMessage(streakDays)}
             </div>
-            <p className="text-[12.5px] text-ink-3 leading-[1.4]">
+            <p className="text-[12.5px] text-dawn-ink-2 leading-[1.4]">
               {personaCfg ? personaCfg.sub : nextRunSuggestion(lastRunDate, lastRunType)}
             </p>
           </div>
@@ -302,15 +299,17 @@ export default async function HomePage({
 
       {/* Weekly goal card */}
       <div className="px-[22px] pt-[4px] pb-[6px]">
-        <div className="pl-card p-4">
+        <div className="dawn-card p-4">
           <div className="flex items-center justify-between mb-[10px]">
-            <span className="pl-seclabel">This week</span>
-            <span className="mono text-[11px] text-ink-3">
+            <span className="dawn-seclabel">This week</span>
+            <span className="mono text-[11px] text-dawn-ink-3">
               {runsThisWeek} / {weeklyTarget} run{weeklyTarget !== 1 ? 's' : ''}
             </span>
           </div>
-          <PacelineProgress value={weeklyTarget > 0 ? (runsThisWeek / weeklyTarget) * 100 : 0} height={8} />
-          <p className="text-[12px] text-ink-3 mt-[8px]">
+          <div className="dawn-prog" style={{ height: 8 }}>
+            <div className="dawn-prog-fill" style={{ width: `${Math.min(weeklyTarget > 0 ? (runsThisWeek / weeklyTarget) * 100 : 0, 100)}%` }} />
+          </div>
+          <p className="text-[12px] text-dawn-ink-2 mt-[8px]">
             {runsThisWeek >= weeklyTarget
               ? `Weekly goal hit! ${personaCfg?.emoji ?? '🎉'}`
               : runsThisWeek === 0
@@ -322,33 +321,33 @@ export default async function HomePage({
 
       {/* Personal Stats Row */}
       <div className="px-[22px] pt-[4px] pb-[6px]">
-        <Link href="/runs" className="pl-card py-[18px] px-2 flex block">
+        <Link href="/runs" className="dawn-card py-[18px] px-2 flex block">
           {[
-            { n: totalRuns || '0', l: 'Runs', c: 'text-race' },
-            { n: `${longestRun.toFixed(1)}`, l: 'Longest km', c: 'text-pine' },
-            { n: averagePace ? formatPace(averagePace) : '--', l: 'Avg /km', c: 'text-ink' },
+            { n: totalRuns || '0', l: 'Runs', c: 'text-runi-deep' },
+            { n: `${longestRun.toFixed(1)}`, l: 'Longest km', c: 'text-[#B06F8A]' },
+            { n: averagePace ? formatPace(averagePace) : '--', l: 'Avg /km', c: 'text-dawn-ink' },
           ].map((x, i) => (
-            <div key={i} className={`flex-1 text-center ${i > 0 ? 'border-l border-line' : ''}`}>
-              <div className={`pl-statn text-[34px] ${x.c}`}>{x.n}</div>
-              <div className="pl-statl">{x.l}</div>
+            <div key={i} className={`flex-1 text-center ${i > 0 ? 'border-l border-dawn-line' : ''}`}>
+              <div className={`dawn-statn text-[34px] ${x.c}`}>{x.n}</div>
+              <div className="dawn-statl">{x.l}</div>
             </div>
           ))}
         </Link>
       </div>
 
-      {/* Leaderboard Position */}
+      {/* Friends standing */}
       <div className="px-[22px] pt-[4px] pb-[6px]">
         <Link
           href="/leaderboard"
-          className="pl-card w-full p-4 flex items-center gap-[14px] cursor-pointer text-left block"
+          className="dawn-card w-full p-4 flex items-center gap-[14px] cursor-pointer text-left block"
         >
           <div
             className="medal medal-sm"
             style={{
-              background: 'radial-gradient(circle at 50% 36%, rgba(255,255,255,.2), transparent 58%), conic-gradient(from 0deg,#E8A93C,#fff3d6,#E8A93C)',
+              background: 'radial-gradient(circle at 50% 36%, rgba(255,255,255,.25), transparent 58%), conic-gradient(from 0deg,#FFC76B,#fff3d6,#F4A93C)',
               // @ts-expect-error CSS custom properties
-              '--m-core': '#1E3A30',
-              '--m-glyph': '#E8A93C',
+              '--m-core': '#5E4E7A',
+              '--m-glyph': '#FFE7B8',
             }}
           >
             <span className="medal-glyph">
@@ -356,23 +355,23 @@ export default async function HomePage({
             </span>
           </div>
           <div className="flex-1">
-            <div className="pl-statl !mt-0">Your rank in the pack</div>
+            <div className="dawn-statl !mt-0 !text-dawn-ink-3">Your place among friends</div>
             <div className="flex items-baseline gap-[6px] mt-[2px]">
-              <span className="anton text-[26px]">#{leaderboardEntry?.rank ?? '?'}</span>
-              <span className="mono text-xs text-ink-3">of {totalMembers ?? 0}</span>
+              <span className="anton text-[26px] text-dawn-ink">#{leaderboardEntry?.rank ?? '?'}</span>
+              <span className="mono text-xs text-dawn-ink-3">of {totalMembers ?? 0}</span>
             </div>
           </div>
         </Link>
       </div>
 
-      {/* Active Quests */}
+      {/* Active Adventures */}
       {activeChallenges.length > 0 && (
         <div className="mt-[18px]">
           <div className="flex items-center justify-between mx-[22px] mb-3">
-            <span className="pl-seclabel">Active Quests</span>
+            <span className="dawn-seclabel">Active Adventures</span>
             <Link
               href="/challenges"
-              className="mono text-[11px] tracking-[0.08em] uppercase text-race-deep font-semibold flex items-center gap-[3px]"
+              className="mono text-[11px] tracking-[0.08em] uppercase text-runi-deep font-semibold flex items-center gap-[3px]"
             >
               See all <ChevronRight size={12} />
             </Link>
@@ -384,18 +383,20 @@ export default async function HomePage({
             }) => {
               const p = c.target_value > 0 ? ((progressMap.get(c.id) ?? 0) / c.target_value) * 100 : 0
               return (
-                <div key={c.id} className="pl-card p-4">
+                <div key={c.id} className="dawn-card p-4">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="font-bold text-base">{c.title}</div>
-                    <span className="pl-pill pl-pill-gold">Joined</span>
+                    <div className="font-bold text-base text-dawn-ink">{c.title}</div>
+                    <span className="dawn-pill">Exploring</span>
                   </div>
                   <div className="flex justify-between mb-2">
-                    <span className="mono text-xs text-ink-3">{c.participants} runners</span>
-                    <span className="mono text-xs text-ink-2 font-semibold">
+                    <span className="mono text-xs text-dawn-ink-3">{c.participants} explorers</span>
+                    <span className="mono text-xs text-dawn-ink-2 font-semibold">
                       {progressMap.get(c.id) ?? 0} / {c.target_value}{c.target_metric === 'distance' ? 'km' : ''}
                     </span>
                   </div>
-                  <PacelineProgress value={p} height={10} />
+                  <div className="dawn-prog" style={{ height: 10 }}>
+                    <div className="dawn-prog-fill" style={{ width: `${Math.min(p, 100)}%` }} />
+                  </div>
                 </div>
               )
             })}
@@ -403,42 +404,42 @@ export default async function HomePage({
         </div>
       )}
 
-      {/* No quests nudge */}
+      {/* No adventures nudge */}
       {activeChallenges.length === 0 && availableChallenges.length > 0 && (
         <div className="px-[22px] mt-[18px]">
-          <div className="pl-card p-4 flex items-center gap-3">
-            <Users size={20} className="text-ink-3 flex-shrink-0" />
+          <div className="dawn-card p-4 flex items-center gap-3">
+            <Compass size={20} className="text-dawn-ink-3 flex-shrink-0" />
             <div className="flex-1">
-              <div className="font-semibold text-[14px]">Join a quest</div>
-              <p className="text-[12px] text-ink-3 mt-[2px]">Running with others makes it stick.</p>
+              <div className="font-semibold text-[14px] text-dawn-ink">Start an adventure</div>
+              <p className="text-[12px] text-dawn-ink-2 mt-[2px]">Wandering with friends makes it stick.</p>
             </div>
             <Link
               href="/challenges"
-              className="mono text-[11px] tracking-[0.06em] font-semibold text-race flex items-center gap-1 flex-shrink-0"
+              className="mono text-[11px] tracking-[0.06em] font-semibold text-runi-deep flex items-center gap-1 flex-shrink-0"
             >
-              Browse <ChevronRight size={12} />
+              Explore <ChevronRight size={12} />
             </Link>
           </div>
         </div>
       )}
 
-      {/* Latest Patches */}
+      {/* Latest Memories */}
       {(badges ?? []).length > 0 && (
         <div className="mt-[22px]">
           <div className="flex items-center justify-between mx-[22px] mb-3">
-            <span className="pl-seclabel">Latest Patches</span>
+            <span className="dawn-seclabel">Latest Memories</span>
             <Link
               href="/trophies"
-              className="mono text-[11px] tracking-[0.08em] uppercase text-race-deep font-semibold flex items-center gap-[3px]"
+              className="mono text-[11px] tracking-[0.08em] uppercase text-runi-deep font-semibold flex items-center gap-[3px]"
             >
-              Cabinet <ChevronRight size={12} />
+              Journal <ChevronRight size={12} />
             </Link>
           </div>
           <div className="flex gap-4 overflow-x-auto px-[22px] pb-[6px] hide-scrollbar">
             {(badges ?? []).map((b: { id: string; name: string; category: string }) => (
               <div key={b.id} className="flex-shrink-0 w-[78px] text-center">
                 <PacelineMedal category={b.category as MedalCategory} size="lg" />
-                <div className="text-[11.5px] font-semibold mt-2 leading-tight">{b.name}</div>
+                <div className="text-[11.5px] font-semibold mt-2 leading-tight text-dawn-ink">{b.name}</div>
               </div>
             ))}
           </div>
@@ -448,11 +449,14 @@ export default async function HomePage({
       {/* No runs empty state */}
       {totalRuns === 0 && (
         <div className="px-[22px] mt-[18px]">
-          <div className="pl-card p-6 text-center">
-            <div className="pl-seclabel mb-2">No runs this month</div>
-            <p className="text-[13px] text-ink-2 mb-4">Your first run is always the hardest. Log it and we&apos;ll take care of the rest.</p>
-            <Link href="/log-run" className="pl-btn pl-btn-primary">
-              Log your first run
+          <div className="dawn-card p-6 text-center">
+            <div className="flex justify-center mb-3">
+              <RuniWisp size="lg" />
+            </div>
+            <div className="dawn-seclabel mb-2">Your story starts here</div>
+            <p className="text-[13px] text-dawn-ink-2 mb-4">Runi is ready when you are. Log your first run and watch the trail light up.</p>
+            <Link href="/log-run" className="dawn-btn dawn-btn-primary">
+              Begin your first run
             </Link>
           </div>
         </div>
@@ -461,13 +465,13 @@ export default async function HomePage({
       {/* Log CTA */}
       {totalRuns > 0 && (
         <div className="px-[22px] pt-3">
-          <Link href="/log-run" className="pl-btn pl-btn-primary">
+          <Link href="/log-run" className="dawn-btn dawn-btn-primary">
             + Log today&apos;s run
           </Link>
         </div>
       )}
 
-      <PacelineNav active="/" />
+      <DawnNav active="/" />
     </div>
   )
 }

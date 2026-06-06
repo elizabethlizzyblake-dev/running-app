@@ -17,8 +17,8 @@ const splineSansMono = Spline_Sans_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Paceline Run Club',
-  description: 'Run together. Rise together. Track your runs, earn patches, and conquer quests with your run club.',
+  title: 'Paceline — A Cosy Running Adventure',
+  description: 'Lace up with Runi, your glowing companion. Unlock memories, wander new adventures, and watch your running journey unfold.',
   generator: 'v0.app',
   manifest: '/manifest.json',
   icons: {
@@ -35,7 +35,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#1E3A30",
+  themeColor: "#C9C2E8",
 }
 
 export default function RootLayout({
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-[#F3EEE3]">
+    <html lang="en" className="bg-[#C9C2E8]">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
