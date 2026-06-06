@@ -3,38 +3,42 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Paceline Design System */
+/* Runika Design System — a cosy storybook palette */
 :root {
-  /* Core palette */
-  --paper: #F3EEE3;
-  --paper-2: #EAE2D2;
-  --card: #FBF8F1;
-  --ink: #1B1916;
-  --ink-2: #4A453C;
-  --ink-3: #8C8474;
-  --race: #E0402A;
-  --race-deep: #B7301E;
-  --pine: #1E3A30;
-  --pine-2: #2C4E41;
-  --gold: #E8A93C;
-  --line: rgba(27, 25, 22, 0.12);
-  --line-soft: rgba(27, 25, 22, 0.07);
+  /* Core palette — warm creams & ink */
+  --paper: #F3E9DC;
+  --paper-2: #EADBC7;
+  --card: #FBF4E9;
+  --ink: #3A2E2A;
+  --ink-2: #6E5C52;
+  --ink-3: #A2917F;
+  --race: #E08B5A;          /* warm terracotta peach (was hot red) */
+  --race-deep: #C56B3C;
+  --pine: #4E6B5A;          /* soft sage forest */
+  --pine-2: #6E8870;
+  --gold: #E2A94E;          /* golden hour */
+  --line: rgba(58, 46, 42, 0.10);
+  --line-soft: rgba(58, 46, 42, 0.06);
 
-  /* Misty dawn adventure palette (Runi's world) */
-  --dawn-sky-top: #C9C2E8;     /* soft lavender */
-  --dawn-sky-mid: #E7C7CE;     /* dusty rose */
-  --dawn-sky-low: #F8D9B8;     /* peach */
-  --dawn-mist: #F4EEF2;        /* pale misty haze */
-  --dawn-ink: #3B3450;         /* deep twilight text */
-  --dawn-ink-2: #6A6080;       /* muted lavender-grey */
-  --dawn-ink-3: #9A93AD;       /* faint */
-  --dawn-card: rgba(255, 255, 255, 0.62);
-  --dawn-line: rgba(59, 52, 80, 0.12);
-  --runi: #FFC76B;             /* sunrise gold wisp */
-  --runi-deep: #F4A93C;
-  --runi-glow: rgba(255, 199, 107, 0.55);
+  /* Storybook sky palette (Runi's world) — golden hour over hills */
+  --dawn-sky-top: #C8BEDC;     /* muted lavender */
+  --dawn-sky-mid: #EEC8C0;     /* dusty peach-rose */
+  --dawn-sky-low: #F6D6B0;     /* warm peach */
+  --dawn-mist: #F4EADD;        /* warm cream haze */
+  --dawn-ink: #43352F;         /* warm cocoa text */
+  --dawn-ink-2: #6F5C52;       /* muted brown */
+  --dawn-ink-3: #A2917F;       /* faint */
+  --dawn-card: rgba(255, 252, 246, 0.66);
+  --dawn-line: rgba(67, 53, 47, 0.10);
+  --sage: #8FA886;             /* soft sage accent */
+  --sage-deep: #5E7A5E;
+  --dusk-blue: #8AA6B6;        /* dusty blue accent */
+  --lavender: #B7A6CE;         /* muted lavender accent */
+  --runi: #FFCB73;             /* sunrise gold wisp */
+  --runi-deep: #ED9F3E;
+  --runi-glow: rgba(255, 203, 115, 0.55);
 
-  /* Semantic tokens mapped to Paceline palette */
+  /* Semantic tokens */
   --background: var(--paper);
   --foreground: var(--ink);
   --card-bg: var(--card);
@@ -49,18 +53,18 @@
   --muted-foreground: var(--ink-3);
   --accent: var(--gold);
   --accent-foreground: var(--ink);
-  --destructive: var(--race-deep);
+  --destructive: #C56B3C;
   --destructive-foreground: #ffffff;
   --border: var(--line);
   --input: var(--paper);
   --ring: var(--race);
-  --radius: 1.125rem;
+  --radius: 1.5rem;
 }
 
 @theme inline {
-  --font-sans: 'Archivo', system-ui, sans-serif;
-  --font-serif: 'Anton', sans-serif;
-  --font-mono: 'Spline Sans Mono', monospace;
+  --font-sans: 'Hanken Grotesque', system-ui, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-mono: 'Hanken Grotesque', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card-bg);
@@ -101,10 +105,14 @@
   --color-dawn-line: var(--dawn-line);
   --color-runi: var(--runi);
   --color-runi-deep: var(--runi-deep);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --color-sage: var(--sage);
+  --color-sage-deep: var(--sage-deep);
+  --color-dusk-blue: var(--dusk-blue);
+  --color-lavender: var(--lavender);
+  --radius-sm: calc(var(--radius) - 10px);
+  --radius-md: calc(var(--radius) - 6px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
 }
 
 @layer base {
@@ -119,23 +127,42 @@
   }
 }
 
-/* Paceline Component Utilities */
+/* Runika Component Utilities */
 @layer utilities {
-  /* Typography */
+  /* Typography — editorial serif display + warm humanist body */
   .anton {
-    font-family: 'Anton', sans-serif;
-    font-weight: 400;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 120;
+    letter-spacing: -0.01em;
   }
 
   .mono {
-    font-family: 'Spline Sans Mono', monospace;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  /* Display serif helper for editorial headings */
+  .display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 50, 'WONK' 1, 'opsz' 144;
+    letter-spacing: -0.015em;
+    line-height: 1.02;
+  }
+
+  .display-italic {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: 'SOFT' 60, 'opsz' 144;
   }
 
   /* Paceline card styles */
   .pl-card {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 26px;
   }
 
   .pl-pine {
@@ -150,33 +177,32 @@
   .pl-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 11px;
+    gap: 6px;
+    padding: 6px 13px;
     border-radius: 999px;
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 10.5px;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   .pl-pill-race {
-    background: rgba(224, 64, 42, 0.13);
+    background: rgba(224, 139, 90, 0.16);
     color: var(--race-deep);
   }
 
   .pl-pill-gold {
-    background: rgba(232, 169, 60, 0.20);
-    color: #8A5E12;
+    background: rgba(226, 169, 78, 0.20);
+    color: #9A6A1E;
   }
 
   .pl-pill-pine {
-    background: rgba(30, 58, 48, 0.12);
-    color: var(--pine);
+    background: rgba(78, 107, 90, 0.14);
+    color: var(--sage-deep);
   }
 
   .pl-pill-onpine {
-    background: rgba(232, 169, 60, 0.22);
+    background: rgba(226, 169, 78, 0.24);
     color: var(--gold);
   }
 
@@ -209,89 +235,94 @@
     background: var(--gold);
   }
 
-  /* Stat numbers */
+  /* Stat numbers — editorial serif */
   .pl-statn {
-    font-family: 'Anton', sans-serif;
-    font-weight: 400;
-    line-height: 0.9;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 40, 'opsz' 120;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
   }
 
   .pl-statl {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     color: var(--ink-3);
-    margin-top: 6px;
+    margin-top: 7px;
   }
 
-  /* Section label */
+  /* Section label — soft, not shouty */
   .pl-seclabel {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
     color: var(--ink-3);
     font-weight: 600;
   }
 
-  /* Eyebrow text */
+  /* Eyebrow text — small caps feel via tracking, italic serif accent */
   .pl-eyebrow {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--race);
-  }
-
-  /* Page heading */
-  .pl-heading {
-    font-family: 'Anton', sans-serif;
-    font-weight: 400;
-    font-size: 40px;
-    line-height: 1;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    font-weight: 500;
     letter-spacing: 0.01em;
-    text-transform: uppercase;
+    color: var(--race-deep);
   }
 
-  /* Buttons */
+  /* Page heading — the hero of the page */
+  .pl-heading {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 50, 'WONK' 1, 'opsz' 144;
+    font-size: 46px;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+  }
+
+  /* Buttons — tactile, organic, golden-hour */
   .pl-btn {
-    font-family: 'Archivo', sans-serif;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 15.5px;
     border: none;
     cursor: pointer;
     width: 100%;
-    padding: 15px;
-    border-radius: 14px;
+    padding: 16px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    letter-spacing: 0.01em;
-    transition: transform 0.12s ease, background 0.2s ease;
+    gap: 9px;
+    letter-spacing: 0.005em;
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
   }
 
   .pl-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 
   .pl-btn-primary {
-    background: var(--race);
-    color: #fff;
+    background: linear-gradient(135deg, var(--race) 0%, var(--gold) 100%);
+    color: #4A2E14;
+    box-shadow: 0 10px 24px rgba(224, 139, 90, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   .pl-btn-primary:hover {
-    background: var(--race-deep);
+    filter: brightness(1.03);
+    box-shadow: 0 14px 30px rgba(224, 139, 90, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   .pl-btn-dark {
     background: var(--ink);
     color: var(--paper);
+    box-shadow: 0 10px 24px rgba(58, 46, 42, 0.24);
   }
 
   .pl-btn-ghost {
-    background: transparent;
+    background: rgba(255, 252, 246, 0.6);
     color: var(--ink);
     border: 1.5px solid var(--line);
   }
@@ -300,39 +331,40 @@
   .pl-field {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 22px;
+    padding: 18px;
   }
 
   .pl-input {
     width: 100%;
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: 11px;
-    padding: 13px 14px;
-    font-family: 'Archivo', sans-serif;
+    border-radius: 16px;
+    padding: 14px 16px;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
     font-size: 16px;
     color: var(--ink);
     outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .pl-input:focus {
     border-color: var(--race);
+    box-shadow: 0 0 0 4px rgba(224, 139, 90, 0.12);
   }
 
   /* Tabs */
   .pl-tab {
     flex-shrink: 0;
-    padding: 9px 15px;
+    padding: 10px 17px;
     border-radius: 999px;
     border: 1px solid var(--line);
     background: var(--card);
     cursor: pointer;
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 11px;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
     color: var(--ink-3);
     transition: all 0.2s;
   }
@@ -348,22 +380,23 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
+    padding: 13px 15px;
+    border-radius: 20px;
     background: var(--card);
     border: 1px solid var(--line);
   }
 
   .pl-lrow-me {
     border-color: var(--race);
-    background: rgba(224, 64, 42, 0.06);
+    background: rgba(224, 139, 90, 0.08);
   }
 
   .pl-rank {
     width: 30px;
     text-align: center;
-    font-family: 'Anton', sans-serif;
-    font-size: 20px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 22px;
     color: var(--ink-3);
     flex-shrink: 0;
   }
@@ -376,8 +409,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 12px;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ink-2);
     flex-shrink: 0;
@@ -541,77 +574,78 @@
   /* frosted glass card that floats over the sky */
   .dawn-card {
     background: var(--dawn-card);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    border-radius: 22px;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 10px 30px rgba(59, 52, 80, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 28px;
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    box-shadow: 0 14px 40px rgba(67, 53, 47, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
-  /* hero band — sunrise over distant hills */
+  /* hero band — golden hour over distant hills */
   .dawn-hero {
     background:
-      radial-gradient(80% 120% at 78% 8%, var(--runi-glow), transparent 46%),
-      linear-gradient(165deg, #5E4E7A 0%, #B06F8A 52%, #F2A86A 100%);
+      radial-gradient(80% 120% at 78% 6%, var(--runi-glow), transparent 48%),
+      linear-gradient(165deg, #6A5A86 0%, #C07E92 46%, #F2A86A 100%);
     color: #fff;
-    border-radius: 26px;
+    border-radius: 32px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 20px 50px rgba(107, 80, 102, 0.28);
   }
 
   .dawn-eyebrow {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
     color: var(--dawn-ink-2);
   }
 
   .dawn-seclabel {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
     color: var(--dawn-ink-2);
     font-weight: 600;
   }
 
   .dawn-heading {
-    font-family: 'Anton', sans-serif;
-    font-weight: 400;
-    line-height: 0.96;
-    letter-spacing: 0.01em;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 50, 'WONK' 1, 'opsz' 144;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
   }
 
   .dawn-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 11px;
+    gap: 6px;
+    padding: 6px 13px;
     border-radius: 999px;
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 10.5px;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 11.5px;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: rgba(255, 199, 107, 0.22);
-    color: #7A4E12;
+    letter-spacing: 0.01em;
+    background: rgba(255, 203, 115, 0.26);
+    color: #8A5512;
   }
 
   .dawn-pill-onhero {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.24);
     color: #fff;
   }
 
   .dawn-prog {
     height: 12px;
     border-radius: 999px;
-    background: rgba(59, 52, 80, 0.12);
+    background: rgba(67, 53, 47, 0.10);
     overflow: hidden;
   }
 
   .dawn-prog-onhero {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.24);
   }
 
   .dawn-prog-fill {
@@ -622,49 +656,56 @@
   }
 
   .dawn-btn {
-    font-family: 'Archivo', sans-serif;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 15.5px;
     width: 100%;
-    padding: 15px;
-    border-radius: 16px;
+    padding: 16px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 9px;
     cursor: pointer;
-    transition: transform 0.12s ease, filter 0.2s ease;
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease, box-shadow 0.2s ease;
   }
 
   .dawn-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 
   .dawn-btn-primary {
     background: linear-gradient(135deg, var(--runi-deep), var(--runi));
     color: #4A2E08;
-    box-shadow: 0 8px 20px rgba(244, 169, 60, 0.35);
+    box-shadow: 0 10px 26px rgba(237, 159, 62, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  .dawn-btn-primary:hover {
+    filter: brightness(1.04);
+    box-shadow: 0 14px 32px rgba(237, 159, 62, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   }
 
   .dawn-btn-ghost {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 252, 246, 0.55);
     color: var(--dawn-ink);
-    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(255, 255, 255, 0.72);
   }
 
   .dawn-statn {
-    font-family: 'Anton', sans-serif;
-    font-weight: 400;
-    line-height: 0.9;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-variation-settings: 'SOFT' 40, 'opsz' 120;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
   }
 
   .dawn-statl {
-    font-family: 'Spline Sans Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: 'Hanken Grotesque', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     color: var(--dawn-ink-3);
-    margin-top: 6px;
+    margin-top: 7px;
   }
 }
 

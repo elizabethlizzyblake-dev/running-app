@@ -1,19 +1,26 @@
 import type { Metadata, Viewport } from 'next'
-import { Archivo, Spline_Sans_Mono } from 'next/font/google'
+import { Fraunces, Mulish } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { NotificationBell } from '@/components/notification-bell'
 import './globals.css'
 
-const archivo = Archivo({
+// Runika's display voice — a handcrafted, optical editorial serif.
+// The SOFT + WONK axes give it that storybook warmth and quirk that makes
+// every title feel hand-lettered and iconic rather than templated.
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-archivo",
-  display: 'swap'
+  variable: "--font-display",
+  display: 'swap',
+  style: ['normal', 'italic'],
+  axes: ['SOFT', 'WONK', 'opsz'],
 })
 
-const splineSansMono = Spline_Sans_Mono({
+// Runika's reading voice — a warm, rounded humanist sans that stays
+// effortlessly legible at small sizes while feeling friendly, not corporate.
+const mulish = Mulish({
   subsets: ["latin"],
-  variable: "--font-spline-mono",
-  display: 'swap'
+  variable: "--font-body",
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -35,7 +42,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#C9C2E8",
+  themeColor: "#F3E9DC",
 }
 
 export default function RootLayout({
@@ -44,14 +51,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-[#C9C2E8]">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className={`${archivo.variable} ${splineSansMono.variable} font-sans antialiased`}>
+    <html lang="en" className="bg-[#F3E9DC]">
+      <body className={`${fraunces.variable} ${mulish.variable} font-sans antialiased`}>
         {children}
         <NotificationBell />
         {process.env.NODE_ENV === 'production' && <Analytics />}

@@ -71,14 +71,14 @@ export function HomeDashboard(props: HomeDashboardProps) {
 
       <div className="world-content">
         {/* Greeting */}
-        <header className="px-[22px] pt-[56px] pb-2">
-          <div className="flex items-center gap-2 dawn-eyebrow mb-[10px]">
-            <Glyph name={greetGlyph} size={14} className="text-runi-deep" />
+        <header className="px-[26px] pt-[60px] pb-2">
+          <div className="flex items-center gap-2 dawn-eyebrow mb-[12px]">
+            <Glyph name={greetGlyph} size={16} className="text-runi-deep" />
             <span>{config.greeting}</span>
           </div>
-          <Link href="/profile" className="flex items-center gap-[14px]">
+          <Link href="/profile" className="flex items-center gap-[16px]">
             <AvatarCircle url={avatarUrl} name={firstName} size="md" />
-            <h1 className="dawn-heading text-[34px] uppercase text-dawn-ink leading-[0.95]">
+            <h1 className="dawn-heading text-[44px] text-dawn-ink leading-[0.95]">
               {firstName}
             </h1>
           </Link>
@@ -99,18 +99,18 @@ export function HomeDashboard(props: HomeDashboardProps) {
         )}
 
         {/* Runi is waiting — the emotional anchor */}
-        <section className="px-[22px] pt-[14px]">
-          <div className="dawn-hero p-[26px]">
+        <section className="px-[26px] pt-[18px]">
+          <div className="dawn-hero p-[30px]">
             <div className="absolute top-5 right-6">
               <RuniWisp size="lg" mood={streakDays === 0 ? "sleeping" : "waiting"} />
             </div>
             <div className="relative z-[2] max-w-[230px]">
-              <p className="text-white/75 text-[14px] leading-[1.5]">
+              <p className="text-white/80 text-[15px] leading-[1.55] display-italic">
                 {streakDays === 0
                   ? "Runi has been resting, dreaming of where you'll go next."
                   : "Runi has been waiting by the trail for you."}
               </p>
-              <p className="dawn-heading text-[26px] text-white mt-3 uppercase leading-[1.02]">
+              <p className="dawn-heading text-[30px] text-white mt-3 leading-[1.04]">
                 {streakDays === 0 ? "Shall we begin?" : "Ready when you are."}
               </p>
             </div>
@@ -118,15 +118,15 @@ export function HomeDashboard(props: HomeDashboardProps) {
         </section>
 
         {/* Next chapter — the craving */}
-        <section className="px-[22px] pt-[14px]">
-          <div className="dawn-card p-5">
+        <section className="px-[26px] pt-[18px]">
+          <div className="dawn-card p-6">
             <div className="dawn-eyebrow mb-2">
               {chapter.next ? `Next chapter · ${chapter.next.index}` : "Final chapter"}
             </div>
-            <h2 className="dawn-heading text-[24px] text-dawn-ink uppercase leading-[1] mb-2">
+            <h2 className="dawn-heading text-[28px] text-dawn-ink leading-[1.02] mb-2">
               {chapter.next ? chapter.next.title : chapter.current.title}
             </h2>
-            <p className="text-[13.5px] text-dawn-ink-2 leading-[1.5] mb-4">
+            <p className="text-[14px] text-dawn-ink-2 leading-[1.55] mb-5">
               {chapter.next ? chapter.next.blurb : chapter.current.blurb}
             </p>
 
@@ -167,7 +167,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
 
         {/* Adventure countdown — Runi's anticipation grows */}
         {nextAdventure && adventureDays !== null && adventureDays >= 0 && (
-          <section className="px-[22px] pt-[14px]">
+          <section className="px-[26px] pt-[18px]">
             <Link href="/challenges" className="block dawn-card p-5">
               <div className="flex items-start gap-4">
                 <RuniWisp size="sm" float={false} mood="happy" />
@@ -195,7 +195,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
 
         {/* No adventure yet — gentle nudge */}
         {!hasJoinedAdventure && (
-          <section className="px-[22px] pt-[14px]">
+          <section className="px-[26px] pt-[18px]">
             <Link href="/challenges" className="block dawn-card p-4">
               <div className="flex items-center gap-3">
                 <Glyph name="compass" size={20} className="text-dawn-ink-3 flex-shrink-0" />
@@ -214,7 +214,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
 
         {/* Latest memory */}
         {latestBadge && (
-          <section className="px-[22px] pt-[14px]">
+          <section className="px-[26px] pt-[18px]">
             <div className="dawn-eyebrow mb-2">Latest memory</div>
             <Link href="/trophies" className="block dawn-card p-5">
               <div className="flex items-center gap-4">
@@ -234,7 +234,7 @@ export function HomeDashboard(props: HomeDashboardProps) {
 
         {/* Your journey together — stats reframed as story, demoted to the bottom */}
         {totalRuns > 0 && (
-          <section className="px-[22px] pt-[18px]">
+          <section className="px-[26px] pt-[22px]">
             <div className="dawn-eyebrow mb-2">Your journey together</div>
             <Link href="/runs" className="block dawn-card py-[18px] px-2">
               <div className="flex">
