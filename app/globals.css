@@ -712,3 +712,129 @@
   0%, 92%, 100% { transform: scaleY(1); }
   95% { transform: scaleY(0.1); }
 }
+
+/* ── Memory Unlocked celebration ────────────────────────────── */
+.mem-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+/* soft radiant burst behind Runi when a memory unlocks */
+.mem-burst {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--runi-glow) 0%, rgba(255, 199, 107, 0) 65%);
+  animation: memBurst 3.2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes memBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* rays of light */
+.mem-rays {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  width: 360px;
+  height: 360px;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 244, 221, 0.45) 8deg,
+    rgba(255, 255, 255, 0) 16deg,
+    rgba(255, 255, 255, 0) 30deg,
+    rgba(255, 244, 221, 0.4) 38deg,
+    rgba(255, 255, 255, 0) 46deg
+  );
+  border-radius: 50%;
+  mask: radial-gradient(circle, transparent 32%, #000 33%, #000 70%, transparent 72%);
+  -webkit-mask: radial-gradient(circle, transparent 32%, #000 33%, #000 70%, transparent 72%);
+  animation: memRays 18s linear infinite, memFadeIn 1.4s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes memRays {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* staged reveal helper */
+.mem-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: memReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes memReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes memFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Runi pops in with a joyful bounce */
+.mem-runi-pop {
+  animation: memRuniPop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes memRuniPop {
+  0% { opacity: 0; transform: scale(0.2) translateY(20px); }
+  60% { opacity: 1; transform: scale(1.12) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* floating motes of light that drift upward */
+.mem-mote {
+  position: absolute;
+  bottom: -10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--runi);
+  box-shadow: 0 0 10px var(--runi-glow);
+  opacity: 0;
+  animation: memMote linear infinite;
+  pointer-events: none;
+}
+
+@keyframes memMote {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  15% { opacity: 0.9; }
+  85% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-105vh) scale(1); }
+}
+
+/* memory card sheen */
+.mem-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 22px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(59, 52, 80, 0.16);
+}
+
+/* a badge tile gently shimmering as a "new memory" */
+.mem-badge-pop {
+  animation: memRuniPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-burst, .mem-rays, .mem-reveal, .mem-runi-pop, .mem-mote, .mem-badge-pop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

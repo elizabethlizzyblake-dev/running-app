@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import {
-  PacelineMedal,
   ChevronRight,
   Route,
   Clock,
@@ -13,6 +12,9 @@ import {
 } from "@/components/paceline-ui"
 import { formatPace, calcPace } from "@/lib/formatting"
 import type { RunType } from "@/lib/types"
+import { AUTO_BADGES } from "@/lib/achievements"
+import { MemoryUnlocked } from "@/components/memory-unlocked"
+import type { MedalCategory } from "@/components/paceline-ui"
 
 const RUN_TYPES: { value: RunType; label: string; description: string }[] = [
   { value: "easy",     label: "Easy Run",   description: "Relaxed pace, conversational" },
@@ -144,41 +146,21 @@ export default function LogRunPage() {
   }
 
   if (submitted) {
+    const earnedMemories = earnedBadges.map((name) => {
+      const def = AUTO_BADGES.find((b) => b.name === name)
+      return {
+        name,
+        category: (def?.category ?? "distance") as MedalCategory,
+      }
+    })
     return (
-      <div className="min-h-screen bg-paper flex items-center justify-center pl-anim">
-        <div className="text-center px-8">
-          <div className="flex justify-center mb-[22px]">
-            <PacelineMedal category="distance" size="lg" />
-          </div>
-          <div className="anton text-[40px] uppercase leading-[0.95]">Logged!</div>
-          <p className="text-ink-2 text-[15px] mt-3 max-w-[240px] mx-auto">
-            {formData.distance
-              ? `${formData.distance}km at ${previewPace(formData)}`
-              : 'Nice work'}{' '}
-            — the club just moved forward.
-          </p>
-          {earnedBadges.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-line">
-              <p className="mono text-[11px] tracking-[0.1em] uppercase text-ink-3 mb-2">
-                New patch{earnedBadges.length > 1 ? 'es' : ''} earned!
-              </p>
-              {earnedBadges.map((name) => (
-                <p key={name} className="text-sm text-race font-semibold">
-                  {name}
-                </p>
-              ))}
-            </div>
-          )}
-          <div className="mt-7 flex flex-col gap-[10px]">
-            <Link href="/" className="pl-btn pl-btn-primary">
-              Back to home
-            </Link>
-            <button className="pl-btn pl-btn-ghost" onClick={resetForm}>
-              Log another
-            </button>
-          </div>
-        </div>
-      </div>
+      <MemoryUnlocked
+        distance={parseFloat(formData.distance) || 0}
+        type={formData.type}
+        notes={formData.notes}
+        badges={earnedMemories}
+        onLogAnother={resetForm}
+      />
     )
   }
 
